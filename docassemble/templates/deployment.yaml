@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-docassemble
+  labels:
+    app: {{ .Release.Name }}-docassemble
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-docassemble
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-docassemble
+    spec:
+      initContainers:
+      - name: init-backend
+        image: busybox:1.28
+        command: ['sh', '-c', 'until wget -q -O /dev/null http://{{ .Release.Name }}-docassemble-backend-service:8080/listlog/health_check?ready=1; do echo waiting for backend; sleep 2; done;']
+      containers:
+      - name: docassemble
+        image: {{ .Values.daImage }}
+        imagePullPolicy: Always
+        env:
+        - name: CONTAINERROLE
+          value: "web:celery"
+        - name: ENVIRONMENT_TAKES_PRECEDENCE
+          value: "true"
+        - name: KUBERNETES
+          value: "true"
+        - name: DAHOSTNAME
+          value: {{ .Values.daHostname }}
+        - name: TIMEZONE
+          value: {{ .Values.timeZone }}
+        - name: DAPYTHONVERSION
+          value: "3"
+        - name: S3BUCKET
+          value: {{ .Values.global.bucketName }}
+        - name: S3ACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-minio
+              key: accesskey
+        - name: S3SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-minio
+              key: secretkey
+        - name: S3ENDPOINTURL
+          value: "http://{{ .Release.Name }}-minio:9000"
+        - name: DBHOST
+          value: "{{ .Release.Name }}-postgres-service"
+        - name: DBNAME
+          value: "docassemble"
+        - name: DBUSER
+          value: "docassemble"
+        - name: DBPASSWORD
+          value: "abc123"
+        - name: REDIS
+          value: "redis://{{ .Release.Name }}-redis-service"
+        - name: USECLOUDURLS
+          value: "false"
+        - name: DAEXPOSEWEBSOCKETS
+          value: "true"
+        - name: BEHINDHTTPSLOADBALANCER
+          value: "{{ .Values.usingSslTermination }}"
+        ports:
+        - containerPort: 80
+        - containerPort: 5000
+        - containerPort: 9001
+        readinessProbe:
+          exec:
+            command:
+              - /bin/bash
+              - "-c"
+              - "supervisorctl status celery | grep RUNNING"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 60
+        livenessProbe:
+          httpGet:
+            path: /health_check
+            port: 80
+          initialDelaySeconds: 600
+          periodSeconds: 60
+      terminationGracePeriodSeconds: 600

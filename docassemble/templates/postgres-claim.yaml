@@ -1,0 +1,13 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-postgres-pv-claim
+  labels:
+    app: {{ .Release.Name }}-postgres
+spec:
+  storageClassName: {{ .Values.minio.persistence.storageClass }}
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.postgresStorage }}

@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-docassemble-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: {{ .Values.daHostname }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Release.Name }}-docassemble-service
+          servicePort: 80

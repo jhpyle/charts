@@ -1,0 +1,61 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-redis-service
+  labels:
+    service: {{ .Release.Name }}-redis-service
+spec:
+  selector:
+    app: {{ .Release.Name }}-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-redis
+  deletionGracePeriodSeconds: 120
+  labels:
+    app: {{ .Release.Name }}-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-redis
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-redis
+    spec:
+      hostname: {{ .Release.Name }}-redis
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim: 
+            claimName: {{ .Release.Name }}-redis-pv-claim
+      containers:
+        - name: redis
+          image: {{ .Values.redisImage }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+          volumeMounts:
+            - name: redis-data
+              mountPath: "/data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-redis-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.minio.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.redisStorage }}

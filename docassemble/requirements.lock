@@ -1,0 +1,9 @@
+dependencies:
+- name: nginx-ingress
+  repository: https://kubernetes-charts.storage.googleapis.com
+  version: 1.24.4
+- name: minio
+  repository: https://kubernetes-charts.storage.googleapis.com
+  version: 2.5.16
+digest: sha256:111d50b1216c1cae2e2479f98b3f68a4272b2b01e13170063f8b18e07d36e93b
+generated: "2019-10-28T22:23:17.861876401-04:00"

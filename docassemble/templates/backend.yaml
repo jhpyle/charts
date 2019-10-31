@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-docassemble-backend
+  labels:
+    app: {{ .Release.Name }}-docassemble-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-docassemble-backend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-docassemble-backend
+    spec:
+      initContainers:
+      - name: init-minio
+        image: busybox:1.28
+        command: ['sh', '-c', 'until wget -q -O /dev/null http://{{ .Release.Name }}-minio:9000/minio/health/ready; do echo waiting for minio; sleep 2; done; sleep 60']
+      - name: init-postgres
+        image: {{ .Values.postgresImage }}
+        command: ['sh', '-c', 'until pg_isready -h {{ .Release.Name }}-postgres-service -p 5432; do echo waiting for postgres; sleep 2; done;']
+      - name: init-redis
+        image: {{ .Values.redisImage }}
+        command: ['sh', '-c', 'until redis-cli -h {{ .Release.Name }}-redis-service ping; do echo waiting for redis; sleep 2; done;']
+      containers:
+      - name: docassemble
+        image: {{ .Values.daImage }}
+        imagePullPolicy: Always
+        env:
+        - name: CONTAINERROLE
+          value: "rabbitmq:log:cron:mail"
+        - name: ENVIRONMENT_TAKES_PRECEDENCE
+          value: "true"
+        - name: KUBERNETES
+          value: "true"
+        - name: DAHOSTNAME
+          value: {{ .Values.daHostname }}
+        - name: TIMEZONE
+          value: {{ .Values.timeZone }}
+        - name: DAPYTHONVERSION
+          value: "3"
+        - name: S3BUCKET
+          value: {{ .Values.global.bucketName }}
+        - name: S3ACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-minio
+              key: accesskey
+        - name: S3SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-minio
+              key: secretkey
+        - name: S3ENDPOINTURL
+          value: "http://{{ .Release.Name }}-minio:9000"
+        - name: DBHOST
+          value: "{{ .Release.Name }}-postgres-service"
+        - name: DBNAME
+          value: "docassemble"
+        - name: DBUSER
+          value: "docassemble"
+        - name: DBPASSWORD
+          value: "abc123"
+        - name: REDIS
+          value: "redis://{{ .Release.Name }}-redis-service"
+        - name: USECLOUDURLS
+          value: "false"
+        - name: DAEXPOSEWEBSOCKETS
+          value: "true"
+        - name: BEHINDHTTPSLOADBALANCER
+          value: "{{ .Values.usingSslTermination }}"
+        ports:
+        - containerPort: 8080
+        - containerPort: 9001
+        - containerPort: 514
+        - containerPort: 25
+        - containerPort: 4369
+        - containerPort: 5671
+        - containerPort: 5672
+        - containerPort: 25672
+        readinessProbe:
+          exec:
+            command:
+              - /bin/bash
+              - "-c"
+              - "supervisorctl status cron | grep RUNNING"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 660
+        livenessProbe:
+          httpGet:
+            path: /listlog/health_check
+            port: 8080
+          initialDelaySeconds: 300
+          periodSeconds: 60
+      terminationGracePeriodSeconds: 60

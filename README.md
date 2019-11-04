@@ -13,8 +13,6 @@ the [Helm] repository `http://charts.docassemble.org:8080`.
 
 * You have a [Kubernetes] cluster with three or more nodes.
 * You have installed [Helm].
-* You have created a `StorageClass` in your structure for block
-  storage.
 * You have made a final decision about what hostname to use to access
   the server.
 * If you want to use HTTPS, you have a web server or load balancer
@@ -40,8 +38,7 @@ Then, to install, run:
 
 ```
 helm install jhpyle/docassemble \
-    --set daHostname=docassemble.example.com \
-    --set minio.persistence.storageClass=my-storage
+    --set daHostname=docassemble.example.com
 ```
 
 You can set the following values:
@@ -50,9 +47,10 @@ You can set the following values:
   `helm install`.  Knowing the hostname in advance is necessary for
   the Live Help features to work; the hostname is used in the
   configuration of the NGINX Ingress Controller.
-* `minio.persistence.storageClass`.  The default is `ceph-storage`.
-  Always set this to whatever `StorageClass` you have configured in
-  your cluster.
+* `global.storageClass`.  Set this to whatever automatically
+  provisioning `StorageClass` you are using in your cluster.
+* `minio.persistence.storageClass`.  If you set `global.storageClass`,
+  set this to the same value.
 * `timeZone`: default is `America/New_York`.  This will be the time
   zone on the Linux machines running **docassemble**.
 * `replicas`: default is 2.  This indicates the number of application
@@ -61,6 +59,8 @@ You can set the following values:
 * `usingSslTermination`: default is `true`.  If you are not going to
   access the site over HTTPS (which is not recommended except for
   temporary testing purposes), set this to `false`.
+* `daImage`: default is `jhpyle/docassemble:latest`.  This is the
+  image of **docassemble** that you want to use.
 
 If you want to install a new version, first update your repository
 cache by running:
@@ -80,7 +80,7 @@ The [Helm] chart installs the following backend services:
 * [Redis] for the backend in-memory storage system.
 
 The chart also installs a single backend **docassemble** server, which
-has a `CONTAINERROLE` of `rabbitmq:log:cron:mail`, and a number of
+has a `CONTAINERROLE` of `log:cron:mail`, and a number of
 application servers (as determined by the `replicas` value), which
 have a `CONTAINERROLE` of `web:celery`.
 

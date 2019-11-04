@@ -65,6 +65,12 @@ spec:
           value: "true"
         - name: BEHINDHTTPSLOADBALANCER
           value: "{{ .Values.usingSslTermination }}"
+        - name: RABBITMQ
+          value: "pyamqp://user:{{ .Values.rabbitmq.rabbitmq.password }}@{{ .Release.Name }}-rabbitmq//"
+        - name: LOGSERVER
+          value: "{{ .Release.Name }}-docassemble-backend-service"
+        - name: RELEASENAME
+          value: "{{ .Release.Name }}"
         ports:
         - containerPort: 80
         - containerPort: 5000

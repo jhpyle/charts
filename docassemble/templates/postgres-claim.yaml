@@ -5,9 +5,15 @@ metadata:
   labels:
     app: {{ .Release.Name }}-postgres
 spec:
-  storageClassName: {{ .Values.minio.persistence.storageClass }}
+{{- if .Values.minio.persistence.storageClass }}
+{{- if (eq "-" .Values.minio.persistence.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ .Values.minio.persistence.storageClass }}"
+{{- end }}
+{{- end }}
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: {{ .Values.postgresStorage }}

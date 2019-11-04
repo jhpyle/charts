@@ -7,14 +7,16 @@ daHostname: localhost
 dbName: docassemble
 dbUser: docassemble
 dbPassword: abc123
-persistentStorage: 25Gi
 postgresStorage: 5Gi
 redisStorage: 5Gi
 usingSslTermination: true
+rabbitmq:
+  rabbitmq:
+    password: abc123
+    erlangCookie: jmvk83gy7gsbf9kb37gk99hdf2d4jdz
 minio:
   persistence:
     size: 10Gi
-    storageClass: ceph-storage
   mode: distributed
   accessKey: "AKIAIOSFODNN7"
   secretKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCY"

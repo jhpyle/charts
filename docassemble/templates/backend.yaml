@@ -30,7 +30,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: CONTAINERROLE
-          value: "rabbitmq:log:cron:mail"
+          value: "log:cron:mail"
         - name: ENVIRONMENT_TAKES_PRECEDENCE
           value: "true"
         - name: KUBERNETES
@@ -71,15 +71,17 @@ spec:
           value: "true"
         - name: BEHINDHTTPSLOADBALANCER
           value: "{{ .Values.usingSslTermination }}"
+        - name: RABBITMQ
+          value: "pyamqp://user:{{ .Values.rabbitmq.rabbitmq.password }}@{{ .Release.Name }}-rabbitmq//"
+        - name: LOGSERVER
+          value: "{{ .Release.Name }}-docassemble-backend-service"
+        - name: RELEASENAME
+          value: "{{ .Release.Name }}"
         ports:
         - containerPort: 8080
         - containerPort: 9001
         - containerPort: 514
         - containerPort: 25
-        - containerPort: 4369
-        - containerPort: 5671
-        - containerPort: 5672
-        - containerPort: 25672
         readinessProbe:
           exec:
             command:

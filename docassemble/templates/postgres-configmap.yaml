@@ -8,3 +8,4 @@ data:
   POSTGRES_DB: {{ .Values.dbName }}
   POSTGRES_USER: {{ .Values.dbUser }}
   POSTGRES_PASSWORD: {{ .Values.dbPassword }}
+  PGDATA: /var/lib/postgresql/data/pgdata

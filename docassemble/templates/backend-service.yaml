@@ -9,4 +9,7 @@ spec:
     - port: 8080
       targetPort: 8080
       name: http
+    - port: 514
+      targetPort: 514
+      name: syslog
   type: ClusterIP

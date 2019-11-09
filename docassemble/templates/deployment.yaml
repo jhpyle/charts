@@ -25,62 +25,15 @@ spec:
         env:
         - name: CONTAINERROLE
           value: "web:celery"
-        - name: ENVIRONMENT_TAKES_PRECEDENCE
-          value: "true"
-        - name: KUBERNETES
-          value: "true"
-        - name: DAHOSTNAME
-          value: {{ .Values.daHostname }}
-        - name: TIMEZONE
-          value: {{ .Values.timeZone }}
-        - name: DAPYTHONVERSION
-          value: "3"
-        - name: S3BUCKET
-          value: {{ .Values.global.bucketName }}
-        - name: S3ACCESSKEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Release.Name }}-minio
-              key: accesskey
-        - name: S3SECRETACCESSKEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Release.Name }}-minio
-              key: secretkey
-        - name: S3ENDPOINTURL
-          value: "http://{{ .Release.Name }}-minio:9000"
-        - name: DBHOST
-          value: "{{ .Release.Name }}-postgres-service"
-        - name: DBNAME
-          value: "docassemble"
-        - name: DBUSER
-          value: "docassemble"
-        - name: DBPASSWORD
-          value: "abc123"
-        - name: REDIS
-          value: "redis://{{ .Release.Name }}-redis-service"
-        - name: USECLOUDURLS
-          value: "false"
-        - name: DAEXPOSEWEBSOCKETS
-          value: "true"
-        - name: BEHINDHTTPSLOADBALANCER
-          value: "{{ .Values.usingSslTermination }}"
-        - name: RABBITMQ
-          value: "pyamqp://user:{{ .Values.rabbitmq.rabbitmq.password }}@{{ .Release.Name }}-rabbitmq//"
-        - name: LOGSERVER
-          value: "{{ .Release.Name }}-docassemble-backend-service"
-        - name: RELEASENAME
-          value: "{{ .Release.Name }}"
+        {{ include "docassemble.commonEnvironment" . }}
         ports:
         - containerPort: 80
         - containerPort: 5000
         - containerPort: 9001
         readinessProbe:
-          exec:
-            command:
-              - /bin/bash
-              - "-c"
-              - "supervisorctl status celery | grep RUNNING"
+          httpGet:
+            path: /health_check?ready=1
+            port: 80
           initialDelaySeconds: 30
           periodSeconds: 10
           failureThreshold: 60
@@ -90,4 +43,4 @@ spec:
             port: 80
           initialDelaySeconds: 600
           periodSeconds: 60
-      terminationGracePeriodSeconds: 600
+      terminationGracePeriodSeconds: 120

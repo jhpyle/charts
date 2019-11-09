@@ -1,19 +1,25 @@
+{{- if .Values.inClusterPostgres }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: {{ .Release.Name }}-postgres-pv-claim
   labels:
     app: {{ .Release.Name }}-postgres
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
 spec:
-{{- if .Values.minio.persistence.storageClass }}
-{{- if (eq "-" .Values.minio.persistence.storageClass) }}
+{{- if .Values.global }}
+  {{- if .Values.global.storageClass }}
+    {{- if (eq "-" .Values.global.storageClass) }}
   storageClassName: ""
-{{- else }}
-  storageClassName: "{{ .Values.minio.persistence.storageClass }}"
-{{- end }}
+    {{- else }}
+  storageClassName: "{{ .Values.global.storageClass }}"
+    {{- end }}
+  {{- end }}
 {{- end }}
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: {{ .Values.postgresStorage }}
+{{- end }}

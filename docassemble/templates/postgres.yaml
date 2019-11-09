@@ -1,3 +1,4 @@
+{{- if .Values.inClusterPostgres }}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -21,7 +22,13 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgredb
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "10"]
       volumes:
         - name: postgredb
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-postgres-pv-claim
+      terminationGracePeriodSeconds: 60
+{{- end }}

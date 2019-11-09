@@ -14,3 +14,6 @@ spec:
       targetPort: 5000
       name: wshttp
       protocol: TCP
+{{- if not .Values.inClusterNGINX }}
+  type: LoadBalancer
+{{- end }}

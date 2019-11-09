@@ -1,4 +1,4 @@
----
+{{- if .Values.inClusterRedis }}
 kind: Service
 apiVersion: v1
 metadata:
@@ -47,6 +47,11 @@ spec:
           volumeMounts:
             - name: redis-data
               mountPath: "/data"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "10"]
+      terminationGracePeriodSeconds: 60
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -54,16 +59,21 @@ metadata:
   name: {{ .Release.Name }}-redis-pv-claim
   labels:
     app: {{ .Release.Name }}-redis
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
 spec:
   accessModes:
     - ReadWriteOnce
-{{- if .Values.minio.persistence.storageClass }}
-{{- if (eq "-" .Values.minio.persistence.storageClass) }}
+{{- if .Values.global }}
+  {{- if .Values.global.storageClass }}
+    {{- if (eq "-" .Values.global.storageClass) }}
   storageClassName: ""
-{{- else }}
-  storageClassName: "{{ .Values.minio.persistence.storageClass }}"
-{{- end }}
+    {{- else }}
+  storageClassName: "{{ .Values.global.storageClass }}"
+    {{- end }}
+  {{- end }}
 {{- end }}
   resources:
     requests:
       storage: {{ .Values.redisStorage }}
+{{- end }}

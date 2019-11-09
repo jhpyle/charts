@@ -2,9 +2,12 @@ dependencies:
   - name: nginx-ingress
     version: 1.24.4
     repository: https://kubernetes-charts.storage.googleapis.com
+    condition: inClusterNGINX
   - name: minio
     version: 2.5.18
     repository: https://kubernetes-charts.storage.googleapis.com
+    condition: inClusterMinio
   - name: rabbitmq
     version: 6.10.1
     repository: https://kubernetes-charts.storage.googleapis.com
+    condition: inClusterRabbitMQ

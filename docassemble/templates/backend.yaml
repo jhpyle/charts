@@ -14,74 +14,69 @@ spec:
       labels:
         app: {{ .Release.Name }}-docassemble-backend
     spec:
+{{- if or .Values.inClusterMinio .Values.inClusterPostgres .Values.inClusterRedis (and .Values.adminEmail .Values.adminPassword) }}
       initContainers:
+  {{- if .Values.inClusterMinio }}
       - name: init-minio
-        image: busybox:1.28
-        command: ['sh', '-c', 'until wget -q -O /dev/null http://{{ .Release.Name }}-minio:9000/minio/health/ready; do echo waiting for minio; sleep 2; done; sleep 60']
-      - name: init-postgres
-        image: {{ .Values.postgresImage }}
-        command: ['sh', '-c', 'until pg_isready -h {{ .Release.Name }}-postgres-service -p 5432; do echo waiting for postgres; sleep 2; done;']
-      - name: init-redis
-        image: {{ .Values.redisImage }}
-        command: ['sh', '-c', 'until redis-cli -h {{ .Release.Name }}-redis-service ping; do echo waiting for redis; sleep 2; done;']
-      containers:
-      - name: docassemble
-        image: {{ .Values.daImage }}
-        imagePullPolicy: Always
+        image: {{ .Values.minio.mcImage.repository }}:{{ .Values.minio.mcImage.tag }}
+        command: ['sh', '-c', 'until { mc config host add minio "$S3_ENDPOINT_URL" "$S3_ACCESS_KEY" "$S3_SECRET_KEY" && mc ls minio/$S3_BUCKET/; } do echo waiting for minio; sleep 10; done;']
         env:
-        - name: CONTAINERROLE
-          value: "log:cron:mail"
-        - name: ENVIRONMENT_TAKES_PRECEDENCE
-          value: "true"
-        - name: KUBERNETES
-          value: "true"
-        - name: DAHOSTNAME
-          value: {{ .Values.daHostname }}
-        - name: TIMEZONE
-          value: {{ .Values.timeZone }}
-        - name: DAPYTHONVERSION
-          value: "3"
-        - name: S3BUCKET
-          value: {{ .Values.global.bucketName }}
-        - name: S3ACCESSKEY
+        - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-minio
               key: accesskey
-        - name: S3SECRETACCESSKEY
+        - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-minio
               key: secretkey
-        - name: S3ENDPOINTURL
+        - name: S3_ENDPOINT_URL
           value: "http://{{ .Release.Name }}-minio:9000"
-        - name: DBHOST
-          value: "{{ .Release.Name }}-postgres-service"
-        - name: DBNAME
-          value: "docassemble"
-        - name: DBUSER
-          value: "docassemble"
-        - name: DBPASSWORD
-          value: "abc123"
-        - name: REDIS
-          value: "redis://{{ .Release.Name }}-redis-service"
-        - name: USECLOUDURLS
-          value: "false"
-        - name: DAEXPOSEWEBSOCKETS
-          value: "true"
-        - name: BEHINDHTTPSLOADBALANCER
-          value: "{{ .Values.usingSslTermination }}"
-        - name: RABBITMQ
-          value: "pyamqp://user:{{ .Values.rabbitmq.rabbitmq.password }}@{{ .Release.Name }}-rabbitmq//"
-        - name: LOGSERVER
-          value: "{{ .Release.Name }}-docassemble-backend-service"
-        - name: RELEASENAME
-          value: "{{ .Release.Name }}"
+        - name: S3_BUCKET
+          value: "{{ .Values.minio.defaultBucket.name }}"
+  {{- end }}
+  {{- if and .Values.adminEmail .Values.adminPassword }}
+      - name: init-credentials
+        image: bash:4.4
+        command: ['bash', '-c', 'echo -e "export DA_ADMIN_EMAIL={{ .Values.adminEmail }}\nexport DA_ADMIN_PASSWORD={{ .Values.adminPassword }}" > /configdata/initial_credentials']
+        volumeMounts:
+        - name: config-data
+          mountPath: /configdata
+  {{- end }}
+  {{- if .Values.inClusterPostgres }}
+      - name: init-postgres
+        image: {{ .Values.postgresImage }}
+        command: ['sh', '-c', 'until pg_isready -h {{ .Release.Name }}-postgres-service -p 5432; do echo waiting for postgres; sleep 2; done;']
+  {{- end }}
+  {{- if .Values.inClusterRedis }}
+      - name: init-redis
+        image: {{ .Values.redisImage }}
+        command: ['sh', '-c', 'until redis-cli -h {{ .Release.Name }}-redis-service ping; do echo waiting for redis; sleep 2; done;']
+  {{- end }}
+{{- end }}
+      containers:
+      - name: docassemble
+        image: {{ .Values.daImage }}
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: config-data
+          mountPath: /configdata
+        env:
+        - name: CONTAINERROLE
+          value: "{{ if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}rabbitmq:{{ end }}log:cron:mail"
+        {{ include "docassemble.commonEnvironment" . }}
         ports:
         - containerPort: 8080
         - containerPort: 9001
         - containerPort: 514
         - containerPort: 25
+{{- if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}
+        - containerPort: 4369
+        - containerPort: 5671
+        - containerPort: 5672
+        - containerPort: 25672
+{{- end }}
         readinessProbe:
           exec:
             command:
@@ -95,6 +90,9 @@ spec:
           httpGet:
             path: /listlog/health_check
             port: 8080
-          initialDelaySeconds: 300
+          initialDelaySeconds: 900
           periodSeconds: 60
-      terminationGracePeriodSeconds: 60
+      volumes:
+      - name: config-data
+        emptyDir: {}
+      terminationGracePeriodSeconds: 120

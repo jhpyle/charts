@@ -2,20 +2,45 @@ replicas: 2
 postgresImage: postgres:10.4
 redisImage: redis:latest
 timeZone: America/New_York
+#locale: en_US.UTF-8 UTF-8
 daImage: jhpyle/docassemble:latest
+daMonitorImage: jhpyle/docassemble-monitor:latest
 daHostname: localhost
-dbName: docassemble
-dbUser: docassemble
-dbPassword: abc123
 postgresStorage: 5Gi
 redisStorage: 5Gi
 usingSslTermination: true
+inClusterNGINX: true
+inClusterMinio: true
+inClusterPostgres: true
+inClusterRedis: true
+inClusterRabbitMQ: true
+s3:
+  enable: false
+  #bucket: null
+  #accessKey: null
+  #secretKey: null
+azure:
+  enable: false
+  #accountName: null
+  #accountKey: null
+  #container: null
+#amqpURL: null
+#redisURL: null
+db:
+  #host: null
+  name: docassemble
+  user: docassemble
+  password: abc123
+  #port: 5432
+  #tablePrefix: null
+  #prefix: postgresql+psycopg2://
 rabbitmq:
   rabbitmq:
     password: abc123
     erlangCookie: jmvk83gy7gsbf9kb37gk99hdf2d4jdz
 minio:
   persistence:
+    subPath: minio
     size: 10Gi
   mode: distributed
   accessKey: "AKIAIOSFODNN7"
@@ -35,5 +60,5 @@ nginx-ingress:
   defaultBackend:
     nodeSelector:
       beta.kubernetes.io/os: linux
-global:
-  bucketName: docassemble-bucket
+# global:
+#   storageClass: null

@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-mon-sa
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Release.Name }}-mon-role-binding
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-mon-sa
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ .Release.Name }}-mon-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+  name: {{ .Release.Name }}-mon-role
+  namespace: {{ .Release.Namespace }}
+rules:
+- apiGroups:
+  - ""
+  resources: ["*"]
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - extensions
+  resources: ["*"]
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources: ["*"]
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-docassemble-monitor
+  labels:
+    app: {{ .Release.Name }}-docassemble-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-docassemble-monitor
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-docassemble-monitor
+    spec:
+      serviceAccountName: {{ .Release.Name }}-mon-sa
+      containers:
+      - name: monitor
+        image: "{{ .Values.daMonitorImage }}"
+        imagePullPolicy: Always
+        env:
+        - name: NAMESPACE
+          value: "{{ .Release.Namespace }}"
+        - name: REPLICAS
+          value: "{{ .Values.replicas }}"
+        - name: POSTGRES_IMAGE
+          value: "{{ .Values.postgresImage }}"
+        - name: REDIS_IMAGE
+          value: "{{ .Values.redisImage }}"
+        - name: DA_IMAGE
+          value: "{{ .Values.daImage }}"
+        - name: DA_MONITOR_IMAGE
+          value: "{{ .Values.daMonitorImage }}"
+        - name: POSTGRES_STORAGE
+          value: "{{ .Values.postgresStorage }}"
+        - name: REDIS_STORAGE
+          value: "{{ .Values.redisStorage }}"
+        - name: IN_CLUSTER_NGINX
+          value: "{{ .Values.inClusterNGINX }}"
+        - name: IN_CLUSTER_MINIO
+          value: "{{ .Values.inClusterMinio }}"
+        - name: IN_CLUSTER_POSTGRES
+          value: "{{ .Values.inClusterPostgres }}"
+        - name: IN_CLUSTER_REDIS
+          value: "{{ .Values.inClusterRedis }}"
+        - name: IN_CLUSTER_RABBITMQ
+          value: "{{ .Values.inClusterRabbitMQ }}"
+        - name: MINIO_STORAGE
+          value: "{{ .Values.minio.persistence.size }}"
+        - name: MINIO_REPLICAS
+          value: "{{ .Values.minio.replicas }}"
+        {{ include "docassemble.commonEnvironment" . }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-docassemble-monitor-service
+  labels:
+    service: {{ .Release.Name }}-docassemble-monitor-service
+spec:
+  selector:
+    app: {{ .Release.Name }}-docassemble-monitor
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http
+      protocol: TCP

@@ -1,8 +1,8 @@
 # Helm Charts
 
-This is the Helm chart library for [github.com/jhpyle].  Currently this
-library is hosting a single chart, which installs [**docassemble**] in
-a Kubernetes cluster.
+This is the [Helm] chart library for [github.com/jhpyle].  Currently
+this library is hosting a single chart, which installs
+[**docassemble**] in a [Kubernetes] cluster.
 
 ## Installing **docassemble** with helm
 
@@ -12,20 +12,20 @@ the [Helm] repository `http://charts.docassemble.org:8080`.
 ### Prerequisites
 
 * You have a [Kubernetes] cluster with three or more nodes.
-* You have installed [Helm].
+* You have installed [Helm] in the cluster.
 * You have made a final decision about what hostname to use to access
   the server.
-* If you want to use HTTPS, you have a web server or load balancer
-  that can provide SSL termination.  The [Helm] chart only creates a
-  server that operates over HTTP on port 80.
+* If you want to use HTTPS (which you should), you have a web server
+  or load balancer that can provide SSL termination.  The [Helm] chart
+  only creates a server that operates over HTTP on port 80.  [Let's
+  Encrypt] is not supported the way that [**docassemble**] supports
+  [Let's Encrypt] on a single [Docker] container.
 
 ### Installation steps
 
 At a minimum, you need to pass a hostname to the `helm install`
-command, as well as the name of the `StorageClass` you want to use.
-In this example, the site will be accessed at
-`https://docassemble.example.com` and there is a `StorageClass`
-defined in the cluster called `my-storage`.
+command.  In this example, the site will be accessed at
+`https://docassemble.example.com`.
 
 The first time you install **docassemble**, you need to add the chart
 repository:
@@ -61,6 +61,91 @@ You can set the following values:
   temporary testing purposes), set this to `false`.
 * `daImage`: default is `jhpyle/docassemble:latest`.  This is the
   image of **docassemble** that you want to use.
+* `inClusterNGINX`: default is `true`.  By default, the chart runs
+  NGINX inside the cluster in order to provide sticky session support
+  for websockets communication.  The Live Help features use
+  websockets.  If you aren't using the Live Help features, you don't
+  need websockets support.  If you set `inClusterNGINX` to `false`,
+  then the IP address of the application can be found under `<release
+  name>-docassemble-service`.
+* `inClusterMinio`: default is `true`.  By default, the chart runs
+  [MinIO] in order to provide object storage.  If you would rather use
+  [S3] or an [S3]-compatible object storage service, set
+  `inClusterMinio` to `false` and set `s3.enable` to `true`.  If you
+  would rather use [Azure blob storage], set `inClusterMinio` to
+  `false` and set `azure.enable` to `true`.  If `inClusterMinio` is
+  `false`, you need to use either `s3.enable:true` or `azure.enable`
+  to `true`.
+* `s3.enable`: set this to `true` if you want to use [S3] or an
+  [S3]-compatible object storage service, and you don't want to use an
+  in-cluster [MinIO] service.  You must set `inClusterMinio` to
+  `false` for this to be effective.
+* `s3.bucket`: set this to the name of your [S3] bucket.
+* `s3.accessKey`: set this to access key for your [S3] bucket.
+* `s3.secretKey`: set this to secret access key for your [S3] bucket.
+* `s3.region`: set this to the region you want to use.  This is
+  required for [S3] but may not be required for [S3]-compatible
+  services.
+* `s3.endpointURL`: if you are using an [S3]-compatible service other
+  than [S3] itself, set this to the endpoint URL for the API of the
+  [S3]-compatible service.
+* `azure.enable`: set this to `true` if you want to use [Azure blob
+  storage] and you don't want to use an in-cluster [MinIO] service.
+  You must set `inClusterMinio` to `false` for this to be effective.
+* `azure.accountName`: set this to the account name associated with
+  your [Azure blob storage] container.
+* `azure.accountKey`: set this to the account key associated with your
+  [Azure blob storage] container.
+* `azure.container`: set this to the name of your [Azure blob storage]
+  container.
+* `inClusterPostgres`: default is `true`.  By default, the chart runs
+  a [PostgreSQL] server inside the cluster.  If you are using [RDS] or
+  another external SQL server, set this to `false` and set `db.host`
+  to the hostname of the SQL server.
+* `db.host`: set this to the hostname of your external SQL server.
+  This is only effective if you have set `inClusterPostgres` to
+  `false`.
+* `db.name`: default is `docassemble`.  Set this to the name of the
+  database on your SQL server that you want to use.  This is used
+  whether `inClusterPostgres` is `true` or `false`.
+* `db.user`: default is `docassemble`.  Set this to the name of the
+  user of the database on your SQL server that you want to use.  This
+  is used whether `inClusterPostgres` is `true` or `false`.
+* `db.prefix`: if you are not using [PostgreSQL], set this to the
+  [SQLAlchemy] URL prefix for the type of SQL database you are using.
+  For [MySQL], use `mysql://`.
+* `db.port`: if your SQL server runs on a non-standard port, you can
+  explicitly set the port with `db.port`.
+* `db.tablePrefix`: if your SQL database is shared among multiple
+  implementations, you can use a table name prefix by setting
+  `db.tablePrefix`.
+* `inClusterRedis`: default is `true`.  By default, the chart runs a
+  [Redis] server on the cluster.  If you are using [Amazon ElastiCache
+  for Redis] or another external [Redis] service, set `inClusterRedis`
+  to `false` and set `redisURL`.
+* `redisURL`: if you set `inClusterRedis` to `false` because you are
+  using [Amazon ElastiCache for Redis] or another external [Redis]
+  service, set `redisURL` to a URL like
+  `redis://myredisserver.local` where your [Redis] server is on the
+  hostname `myredisserver.local`.
+* `inClusterRabbitMQ`: default is `true`.  By default, the chart runs
+  a [RabbitMQ] server in the cluster, using the official chart for
+  [RabbitMQ].  If you do not want to use this [RabbitMQ] server, set
+  `inClusterRabbitMQ` to `false`.
+* `amqpURL`: if you are running an external [RabbitMQ] server, set
+  this to the URL for your [RabbitMQ] server, such as
+  `pyamqp://guest@rabbitmqserver.local//` if your [RabbitMQ] server is
+  at the hostname `rabbitmqserver.local`.  This is only effective if
+  you set `inClusterRabbitMQ` to `false`.  If you leave `amqpURL`
+  unset while setting `inClusterRabbitMQ` to `false`, then the
+  **docassemble** backend server will run [RabbitMQ].
+* `adminEmail` and `adminPassword`: by default, when a **docassemble**
+  system is first started, the user with administrative privileges is
+  called `admin@admin.com` and has the password `password`, which must
+  be changed after the first login.  If you want to initialize the
+  administrative user with another e-mail address and password, you
+  can set `adminEmail` to the e-mail address for the account and set
+  `adminPassword` to the password.
 
 If you want to install a new version, first update your repository
 cache by running:
@@ -78,65 +163,101 @@ The [Helm] chart installs the following backend services:
   traffic.
 * [PostgreSQL] for the backend SQL storage system.
 * [Redis] for the backend in-memory storage system.
+* [RabbitMQ] for supporting the [Celery]-based background task system.
+* An [API] for monitoring the cluster.
 
 The chart also installs a single backend **docassemble** server, which
-has a `CONTAINERROLE` of `log:cron:mail`, and a number of
-application servers (as determined by the `replicas` value), which
+has a `CONTAINERROLE` of `log:cron:mail`, and a number of application
+servers (the number of which is given by the `replicas` value), which
 have a `CONTAINERROLE` of `web:celery`.
 
 If successful, the installation of the [**docassemble**] Helm chart
 will create [Kubernetes] resources similar to the following:
 
 ```
-jpyle@cephalopod:~$ kubectl get all
-NAME                                                                READY   STATUS    RESTARTS   AGE
-pod/busted-narwhal-docassemble-7d5bbf67d6-bhzpq                     1/1     Running   0          19h
-pod/busted-narwhal-docassemble-7d5bbf67d6-nkjmv                     1/1     Running   0          19h
-pod/busted-narwhal-docassemble-backend-f8575db58-k7n7g              1/1     Running   0          19h
-pod/busted-narwhal-minio-0                                          1/1     Running   0          19h
-pod/busted-narwhal-minio-1                                          1/1     Running   0          19h
-pod/busted-narwhal-minio-2                                          1/1     Running   0          19h
-pod/busted-narwhal-minio-3                                          1/1     Running   0          19h
-pod/busted-narwhal-nginx-ingress-controller-658cc46b8-74c9t         1/1     Running   0          19h
-pod/busted-narwhal-nginx-ingress-controller-658cc46b8-xgx5f         1/1     Running   0          19h
-pod/busted-narwhal-nginx-ingress-default-backend-5484748d57-fsl5s   1/1     Running   0          19h
-pod/busted-narwhal-postgres-77dbf78969-q5lfw                        1/1     Running   0          19h
-pod/busted-narwhal-redis-57d4cb8df8-46kx7                           1/1     Running   0          19h
+jpyle@server:~$ kubectl get all
+NAME                                                                  READY   STATUS    RESTARTS   AGE
+pod/exegetical-panther-docassemble-685bc5f64c-ps6wg                   1/1     Running   0          4h19m
+pod/exegetical-panther-docassemble-685bc5f64c-vnzn6                   1/1     Running   0          4h19m
+pod/exegetical-panther-docassemble-backend-85f769dd5d-hh5ck           1/1     Running   0          4h19m
+pod/exegetical-panther-docassemble-monitor-59b8fd84df-fq8sg           1/1     Running   0          3h19m
+pod/exegetical-panther-minio-0                                        1/1     Running   0          4h19m
+pod/exegetical-panther-minio-1                                        1/1     Running   0          4h19m
+pod/exegetical-panther-minio-2                                        1/1     Running   0          4h19m
+pod/exegetical-panther-minio-3                                        1/1     Running   0          4h19m
+pod/exegetical-panther-nginx-ingress-controller-7b97d89b4b-5bnwc      1/1     Running   0          4h19m
+pod/exegetical-panther-nginx-ingress-controller-7b97d89b4b-dq979      1/1     Running   0          4h19m
+pod/exegetical-panther-nginx-ingress-default-backend-54445f7f66gzg6   1/1     Running   0          4h19m
+pod/exegetical-panther-postgres-7ddf86c6ff-d72rp                      1/1     Running   0          4h19m
+pod/exegetical-panther-rabbitmq-0                                     1/1     Running   0          4h19m
+pod/exegetical-panther-redis-6d69f57886-whtqn                         1/1     Running   0          4h19m
 
-NAME                                                   TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)                      AGE
-service/busted-narwhal-docassemble-backend-service     ClusterIP      10.0.106.112   <none>           8080/TCP                     19h
-service/busted-narwhal-docassemble-service             ClusterIP      10.0.109.75    <none>           80/TCP,5000/TCP              19h
-service/busted-narwhal-minio                           ClusterIP      10.0.105.79    <none>           9000/TCP                     19h
-service/busted-narwhal-minio-svc                       ClusterIP      None           <none>           9000/TCP                     19h
-service/busted-narwhal-nginx-ingress-controller        LoadBalancer   10.0.50.108    105.25.138.209   80:30323/TCP,443:31110/TCP   19h
-service/busted-narwhal-nginx-ingress-default-backend   ClusterIP      10.0.255.228   <none>           80/TCP                       19h
-service/busted-narwhal-postgres-service                NodePort       10.0.59.134    <none>           5432:32371/TCP               19h
-service/busted-narwhal-redis-service                   ClusterIP      10.0.26.159    <none>           6379/TCP                     19h
-service/kubernetes                                     ClusterIP      10.0.0.1       <none>           443/TCP                      2d
+NAME                                                       TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                                 AGE
+service/exegetical-panther-docassemble-backend-service     ClusterIP      10.0.238.13    <none>        8080/TCP,514/TCP,25/TCP                 4h19m
+service/exegetical-panther-docassemble-monitor-service     ClusterIP      10.0.167.96    <none>        80/TCP                                  4h19m
+service/exegetical-panther-docassemble-service             ClusterIP      10.0.78.150    <none>        80/TCP,5000/TCP                         4h19m
+service/exegetical-panther-minio                           ClusterIP      10.0.221.93    <none>        9000/TCP                                4h19m
+service/exegetical-panther-minio-svc                       ClusterIP      None           <none>        9000/TCP                                4h19m
+service/exegetical-panther-nginx-ingress-controller        LoadBalancer   10.0.61.122    25.22.82.89   80:31395/TCP,443:32431/TCP              4h19m
+service/exegetical-panther-nginx-ingress-default-backend   ClusterIP      10.0.211.214   <none>        80/TCP                                  4h19m
+service/exegetical-panther-postgres-service                NodePort       10.0.176.202   <none>        5432:31654/TCP                          4h19m
+service/exegetical-panther-rabbitmq                        ClusterIP      10.0.200.120   <none>        4369/TCP,5672/TCP,25672/TCP,15672/TCP   4h19m
+service/exegetical-panther-rabbitmq-headless               ClusterIP      None           <none>        4369/TCP,5672/TCP,25672/TCP,15672/TCP   4h19m
+service/exegetical-panther-redis-service                   ClusterIP      10.0.76.85     <none>        6379/TCP                                4h19m
+service/kubernetes                                         ClusterIP      10.0.0.1       <none>        443/TCP                                 13h
 
-NAME                                                           READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/busted-narwhal-docassemble                     2/2     2            2           19h
-deployment.apps/busted-narwhal-docassemble-backend             1/1     1            1           19h
-deployment.apps/busted-narwhal-nginx-ingress-controller        2/2     2            2           19h
-deployment.apps/busted-narwhal-nginx-ingress-default-backend   1/1     1            1           19h
-deployment.apps/busted-narwhal-postgres                        1/1     1            1           19h
-deployment.apps/busted-narwhal-redis                           1/1     1            1           19h
+NAME                                                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/exegetical-panther-docassemble                     2/2     2            2           4h19m
+deployment.apps/exegetical-panther-docassemble-backend             1/1     1            1           4h19m
+deployment.apps/exegetical-panther-docassemble-monitor             1/1     1            1           4h19m
+deployment.apps/exegetical-panther-nginx-ingress-controller        2/2     2            2           4h19m
+deployment.apps/exegetical-panther-nginx-ingress-default-backend   1/1     1            1           4h19m
+deployment.apps/exegetical-panther-postgres                        1/1     1            1           4h19m
+deployment.apps/exegetical-panther-redis                           1/1     1            1           4h19m
 
-NAME                                                                      DESIRED   CURRENT   READY   AGE
-replicaset.apps/busted-narwhal-docassemble-7d5bbf67d6                     2         2         2       19h
-replicaset.apps/busted-narwhal-docassemble-backend-f8575db58              1         1         1       19h
-replicaset.apps/busted-narwhal-nginx-ingress-controller-658cc46b8         2         2         2       19h
-replicaset.apps/busted-narwhal-nginx-ingress-default-backend-5484748d57   1         1         1       19h
-replicaset.apps/busted-narwhal-postgres-77dbf78969                        1         1         1       19h
-replicaset.apps/busted-narwhal-redis-57d4cb8df8                           1         1         1       19h
+NAME                                                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/exegetical-panther-docassemble-685bc5f64c                     2         2         2       4h19m
+replicaset.apps/exegetical-panther-docassemble-backend-85f769dd5d             1         1         1       4h19m
+replicaset.apps/exegetical-panther-docassemble-monitor-59b8fd84df             1         1         1       3h19m
+replicaset.apps/exegetical-panther-nginx-ingress-controller-7b97d89b4b        2         2         2       4h19m
+replicaset.apps/exegetical-panther-nginx-ingress-default-backend-54445f7f66   1         1         1       4h19m
+replicaset.apps/exegetical-panther-postgres-7ddf86c6ff                        1         1         1       4h19m
+replicaset.apps/exegetical-panther-redis-6d69f57886                           1         1         1       4h19m
 
-NAME                                    READY   AGE
-statefulset.apps/busted-narwhal-minio   4/4     19h
+NAME                                           READY   AGE
+statefulset.apps/exegetical-panther-minio      4/4     4h19m
+statefulset.apps/exegetical-panther-rabbitmq   1/1     4h19m
+jpyle@server:~$ kubectl get persistentvolumeclaims
+NAME                                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+data-exegetical-panther-rabbitmq-0     Bound    pvc-e50d1a69-02fa-11ea-ae53-8203794352ed   8Gi        RWO            default     4h20m
+exegetical-panther-postgres-pv-claim   Bound    pvc-e2f43129-02fa-11ea-ae53-8203794352ed   5Gi        RWO            default     4h20m
+exegetical-panther-redis-pv-claim      Bound    pvc-e2f6d170-02fa-11ea-ae53-8203794352ed   5Gi        RWO            default     4h20m
+export-exegetical-panther-minio-0      Bound    pvc-e4a1f26a-02fa-11ea-ae53-8203794352ed   10Gi       RWO            default     4h20m
+export-exegetical-panther-minio-1      Bound    pvc-e4b70265-02fa-11ea-ae53-8203794352ed   10Gi       RWO            default     4h20m
+export-exegetical-panther-minio-2      Bound    pvc-e4cd50a0-02fa-11ea-ae53-8203794352ed   10Gi       RWO            default     4h20m
+export-exegetical-panther-minio-3      Bound    pvc-e4dc5d8c-02fa-11ea-ae53-8203794352ed   10Gi       RWO            default     4h20m
+jpyle@server:~$ kubectl get persistentvolumes
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                                          STORAGECLASS   REASON   AGE
+pvc-e2f43129-02fa-11ea-ae53-8203794352ed   5Gi        RWO            Retain           Bound    default/exegetical-panther-postgres-pv-claim   default              4h20m
+pvc-e2f6d170-02fa-11ea-ae53-8203794352ed   5Gi        RWO            Retain           Bound    default/exegetical-panther-redis-pv-claim      default              4h20m
+pvc-e4a1f26a-02fa-11ea-ae53-8203794352ed   10Gi       RWO            Retain           Bound    default/export-exegetical-panther-minio-0      default              4h20m
+pvc-e4b70265-02fa-11ea-ae53-8203794352ed   10Gi       RWO            Retain           Bound    default/export-exegetical-panther-minio-1      default              4h20m
+pvc-e4cd50a0-02fa-11ea-ae53-8203794352ed   10Gi       RWO            Retain           Bound    default/export-exegetical-panther-minio-2      default              4h19m
+pvc-e4dc5d8c-02fa-11ea-ae53-8203794352ed   10Gi       RWO            Retain           Bound    default/export-exegetical-panther-minio-3      default              4h19m
+pvc-e50d1a69-02fa-11ea-ae53-8203794352ed   8Gi        RWO            Retain           Bound    default/data-exegetical-panther-rabbitmq-0     default              4h19m
 ```
 
 The IP address of the **docassemble** application is the external IP
-address of the `nginx-ingress-controller` service, which in this
-example is `105.25.138.209`.
+address of the `<release-name>-nginx-ingress-controller` service, which in this
+example is `25.22.82.89`.  This particular example output comes from
+[Azure Kubernetes Service]; other implementations of [Kubernetes] will
+give different output.
+
+The IP address of the [monitoring API] is the cluster IP address of
+the `<release-name>-docassemble-monitor-service`, which in this
+example is `10.0.167.96`.  This is not exposed to an external IP
+address and should not be, because the API does not use
+authentication.
 
 ### Cleaning up
 
@@ -148,6 +269,46 @@ persistentvolumeclaim <claim id>` on each persistent volume claim.
 Then run `kubectl get persistentvolumes` and then `kubectl delete
 persistentvolume <persistent volume id>` on each persistent volume.
 
+# Should you use [Kubernetes]?
+
+Running **docassemble** in the cloud with [Kubernetes] is several
+times more expensive than [running a single server] in the cloud with
+[Docker].  However, [Kubernetes] is a scalable and modern approach to
+software installation, and [Helm] helps to manage a lot of the
+complexity of [Kubernetes] deployment.
+
+Before putting anything into production with [Kubernetes], make sure
+you understand how data is being stored.
+
+# Recommendations for getting started with Kubernetes
+
+How to deploy [Kubernetes] is beyond the scope of this README, so this
+section only provides very basic information.
+
+## Microsoft Azure
+
+If you use [Microsoft Azure], you can deploy [Kubernetes] by
+installing the `az` and `kubectl` command line utilities.  In [Azure
+Portal], you can go to "Kubernetes services" and add a new Kubernetes
+service.  Then from your local machine, you can do:
+
+```
+az aks get-credentials --resource-group <name of resource group> --name docassemble <name of kubernetes service>
+```
+
+This will write credentials to `~/.kube/config` so that you can
+interact with your cluster using `kubectl`.  You can install [Helm]
+and run the `helm` command to install the **docassemble** chart.
+
+## Amazon Web Services
+
+If you use [Amazon Web Services], the easiest way to get started with
+[Kubernetes] is to install the `aws` command and link it to your
+Amazon account.  Then install the `eksctl` and `kubectl` command line
+utilities.  The easiest way to start a cluster is with the `eksctl
+create cluster` command.  You can then install [Helm] and install the
+**docassemble** chart.
+
 [Helm]: https://helm.sh/
 [Kubernetes]: https://kubernetes.io/
 [github.com/jhpyle]: https://github.com/jhpyle
@@ -156,3 +317,19 @@ persistentvolume <persistent volume id>` on each persistent volume.
 [NGINX Ingress Controller]: https://kubernetes.github.io/ingress-nginx/
 [PostgreSQL]: https://www.postgresql.org/
 [Redis]: http://redis.io/
+[RabbitMQ]: https://www.rabbitmq.com/
+[Celery]: http://www.celeryproject.org/
+[Microsoft Azure]: https://azure.microsoft.com/
+[Azure Kubernetes Service]: https://azure.microsoft.com/en-us/services/kubernetes-service
+[Azure Portal]: https://portal.azure.com/
+[Amazon Web Services]: https://aws.amazon.com
+[Docker]: https://www.docker.com/
+[running a single server]: https://docassemble.org/docs/docker.html
+[S3]: https://aws.amazon.com/s3/
+[Azure blob storage]: https://azure.microsoft.com/en-us/services/storage/blobs/
+[RDS]: https://aws.amazon.com/rds/
+[SQLAlchemy]: http://www.sqlalchemy.org/
+[Amazon ElastiCache for Redis]: https://aws.amazon.com/redis/
+[Let's Encrypt]: https://letsencrypt.org/
+[API]: https://github.com/jhpyle/docassemble-mon
+[monitoring API]: https://github.com/jhpyle/docassemble-mon

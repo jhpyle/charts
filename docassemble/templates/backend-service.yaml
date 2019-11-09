@@ -12,4 +12,7 @@ spec:
     - port: 514
       targetPort: 514
       name: syslog
+    - port: 25
+      targetPort: 25
+      name: smtp
   type: ClusterIP

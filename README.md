@@ -332,4 +332,4 @@ create cluster` command.  You can then install [Helm] and install the
 [Amazon ElastiCache for Redis]: https://aws.amazon.com/redis/
 [Let's Encrypt]: https://letsencrypt.org/
 [API]: https://github.com/jhpyle/docassemble-mon
-[monitoring API]: https://github.com/jhpyle/docassemble-mon
+[monitoring API]: https://github.com/jhpyle/docassemble-monitor

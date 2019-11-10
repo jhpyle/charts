@@ -113,6 +113,6 @@
           value: "{{ .Release.Name }}-docassemble-backend-service"
         - name: RELEASENAME
           value: "{{ .Release.Name }}"
-	- name: CHART_VERSION
-	  value: "{{ .Chart.Version }}"
+        - name: CHART_VERSION
+          value: "{{ .Chart.Version }}"
 {{- end -}}

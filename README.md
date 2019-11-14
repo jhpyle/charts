@@ -171,6 +171,11 @@ You can set the following values:
     * `subnets` - set this to a comma-separated list of at least two subnet IDs.
     * `certificateArn` - set this to the ARN of the SSL certificate
       you are using for your site.
+    * `clusterName` - set this to the name of your cluster.
+    * `awsAccessKey` - set this to the access key with privileges to
+      set up the application load balancer
+    * `awsSecretKey` - set this to the secret key that corresponds
+      with the `awsAccessKey`.
 
 If you want to install a new version, first update your repository
 cache by running:

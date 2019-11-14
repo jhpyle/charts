@@ -64,13 +64,19 @@ spec:
           mountPath: /configdata
         env:
         - name: CONTAINERROLE
-          value: "{{ if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}rabbitmq:{{ end }}log:cron:mail"
+          value: "{{ if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}rabbitmq:{{ end }}{{ if and (not .Values.inClusterRabbitMQ) (not .Values.redisURL) }}redis:{{ end }}{{ if and (not .Values.inClusterPostgres) (not .Values.db.host) }}sql:{{ end }}log:cron:mail"
         {{ include "docassemble.commonEnvironment" . }}
         ports:
         - containerPort: 8080
         - containerPort: 9001
         - containerPort: 514
         - containerPort: 25
+{{- if and (not .Values.inClusterRedis) (not .Values.redisURL) }}
+        - containerPort: 6379
+{{- end }}
+{{- if and (not .Values.inClusterPostgres) (not .Values.db.host) }}
+        - containerPort: 5432
+{{- end }}
 {{- if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}
         - containerPort: 4369
         - containerPort: 5671

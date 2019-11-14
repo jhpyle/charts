@@ -59,6 +59,14 @@ You can set the following values:
 * `usingSslTermination`: default is `true`.  If you are not going to
   access the site over HTTPS (which is not recommended except for
   temporary testing purposes), set this to `false`.
+* `redirectHttp`: default is `true`.  If `usingSslTermination` is
+  `true`, and `redirectHttp` is `true`, then there will be a service
+  at `<release-name>-docassemble-redirect-service` on port 8081 that
+  will redirect HTTP to HTTPS.  If your service that provides SSL
+  termination already redirects incoming HTTP to HTTPS, then you can
+  set this to `false`.  Otherwise, configure the SSL termination
+  service to send incoming HTTP traffic to port 8081 on the external
+  IP address of `<release-name>-docassemble-redirect-service`.
 * `daImage`: default is `jhpyle/docassemble:latest`.  This is the
   image of **docassemble** that you want to use.
 * `inClusterNGINX`: default is `true`.  By default, the chart runs
@@ -104,7 +112,9 @@ You can set the following values:
   to the hostname of the SQL server.
 * `db.host`: set this to the hostname of your external SQL server.
   This is only effective if you have set `inClusterPostgres` to
-  `false`.
+  `false`.  If you leave `db.host` unset while setting
+  `inClusterPostgres` to `false`, then the **docassemble** backend
+  server will run [PostgreSQL].
 * `db.name`: default is `docassemble`.  Set this to the name of the
   database on your SQL server that you want to use.  This is used
   whether `inClusterPostgres` is `true` or `false`.
@@ -127,7 +137,10 @@ You can set the following values:
   using [Amazon ElastiCache for Redis] or another external [Redis]
   service, set `redisURL` to a URL like
   `redis://myredisserver.local` where your [Redis] server is on the
-  hostname `myredisserver.local`.
+  hostname `myredisserver.local`.  This is only effective if
+  you set `inClusterRedis` to `false`.  If you leave `redusURL`
+  unset while setting `inClusterRedis` to `false`, then the
+  **docassemble** backend server will run [Redis].
 * `inClusterRabbitMQ`: default is `true`.  By default, the chart runs
   a [RabbitMQ] server in the cluster, using the official chart for
   [RabbitMQ].  If you do not want to use this [RabbitMQ] server, set
@@ -146,6 +159,18 @@ You can set the following values:
   administrative user with another e-mail address and password, you
   can set `adminEmail` to the e-mail address for the account and set
   `adminPassword` to the password.
+* `exposeWebSockets`: default is `true`.  If `false`, then websockets
+  connections will be accepted through port 80 on the application
+  servers.  If `true`, then websockets connects will be accepted
+  through port 5000.
+* `useAlb`: default is `false`.  If you are deploying on Amazon Web
+  Services and `inClusterNGINX` is `true`, then you can set `useAlb`
+  to `true` and an Application Load Balancer will be created that will
+  forward traffic to the NGINX Ingress Controller.  If using the
+  Application Load Balancer, you also need to set:
+    * `subnets` - set this to a comma-separated list of at least two subnet IDs.
+    * `certificateArn` - set this to the ARN of the SSL certificate
+      you are using for your site.
 
 If you want to install a new version, first update your repository
 cache by running:

@@ -28,8 +28,13 @@ spec:
         {{ include "docassemble.commonEnvironment" . }}
         ports:
         - containerPort: 80
+{{- if .Values.exposeWebsockets }}
         - containerPort: 5000
+{{- end }}
         - containerPort: 9001
+{{- if and .Values.usingSslTermination .Values.redirectHttp }}
+        - containerPort: 8081
+{{- end }}
         readinessProbe:
           httpGet:
             path: /health_check?ready=1

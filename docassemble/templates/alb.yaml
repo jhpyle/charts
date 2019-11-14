@@ -1,0 +1,25 @@
+{{- if and .Values.inClusterNGINX .Values.useAlb }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-alb
+  labels:
+    app: {{ .Release.Name }}-alb
+  annotations:
+    kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/scheme: "internet-facing"
+    alb.ingress.kubernetes.io/target-type: "ip"
+    alb.ingress.kubernetes.io/subnets: "{{ .Values.subnets }}"
+    alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80,"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: "/health_check"
+    alb.ingress.kubernetes.io/success-codes: "200,301"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: "{{ .Release.Name }}-nginx-ingress-controller"
+          servicePort: 80
+{{- end }}

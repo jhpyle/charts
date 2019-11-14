@@ -67,7 +67,7 @@
 {{- if .Values.inClusterPostgres }}
         - name: DBHOST
           value: "{{ .Release.Name }}-postgres-service"
-{{- else }}
+{{- else if .Values.db.host }}
         - name: DBHOST
           value: "{{ .Values.db.host }}"
 {{- end }}
@@ -92,14 +92,18 @@
 {{- if .Values.inClusterRedis }}
         - name: REDIS
           value: "redis://{{ .Release.Name }}-redis-service"
-{{- else }}
+{{- else if .Values.redisURL }}
         - name: REDIS
           value: "{{ .Values.redisURL }}"
 {{- end }}
         - name: USECLOUDURLS
           value: "false"
         - name: DAEXPOSEWEBSOCKETS
+{{- if .Values.exposeWebsockets }}
           value: "true"
+{{- else }}
+          value: "false"
+{{- end }}
         - name: BEHINDHTTPSLOADBALANCER
           value: "{{ .Values.usingSslTermination }}"
 {{- if .Values.inClusterRabbitMQ }}

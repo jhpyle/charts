@@ -9,6 +9,8 @@ daHostname: localhost
 postgresStorage: 5Gi
 redisStorage: 5Gi
 usingSslTermination: true
+redirectHttp: true
+exposeWebsockets: true
 inClusterNGINX: true
 inClusterMinio: true
 inClusterPostgres: true

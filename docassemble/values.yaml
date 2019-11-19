@@ -59,6 +59,10 @@ nginx-ingress:
       beta.kubernetes.io/os: linux
     publishService:
       enabled: true
+    config:
+      use-forwarded-headers: "true"
+    service:
+      enableHttps: false
   defaultBackend:
     nodeSelector:
       beta.kubernetes.io/os: linux

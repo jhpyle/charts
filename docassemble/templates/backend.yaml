@@ -13,7 +13,18 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}-docassemble-backend
+        appType: docassemble
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: appType
+                operator: In
+                values:
+                - docassemble
+            topologyKey: kubernetes.io/hostname
 {{- if or .Values.inClusterMinio .Values.inClusterPostgres .Values.inClusterRedis (and .Values.adminEmail .Values.adminPassword) }}
       initContainers:
   {{- if .Values.inClusterMinio }}
@@ -90,13 +101,13 @@ spec:
               - "-c"
               - "supervisorctl status cron | grep RUNNING"
           initialDelaySeconds: 30
-          periodSeconds: 10
-          failureThreshold: 660
+          periodSeconds: 60
+          failureThreshold: 25
         livenessProbe:
           httpGet:
             path: /listlog/health_check
             port: 8080
-          initialDelaySeconds: 900
+          initialDelaySeconds: 1560
           periodSeconds: 60
       volumes:
       - name: config-data

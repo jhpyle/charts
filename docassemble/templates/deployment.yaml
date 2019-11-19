@@ -13,7 +13,18 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}-docassemble
+        appType: docassemble
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: appType
+                operator: In
+                values:
+                - docassemble
+            topologyKey: kubernetes.io/hostname
       initContainers:
       - name: init-backend
         image: busybox:1.28
@@ -32,7 +43,7 @@ spec:
         - containerPort: 5000
 {{- end }}
         - containerPort: 9001
-{{- if and .Values.usingSslTermination .Values.redirectHttp }}
+{{- if and .Values.usingSslTermination (not .Values.useAlb) .Values.redirectHttp }}
         - containerPort: 8081
 {{- end }}
         readinessProbe:
@@ -40,12 +51,12 @@ spec:
             path: /health_check?ready=1
             port: 80
           initialDelaySeconds: 30
-          periodSeconds: 10
-          failureThreshold: 60
+          periodSeconds: 60
+          failureThreshold: 25
         livenessProbe:
           httpGet:
             path: /health_check
             port: 80
-          initialDelaySeconds: 600
+          initialDelaySeconds: 1560
           periodSeconds: 60
       terminationGracePeriodSeconds: 120

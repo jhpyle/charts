@@ -168,7 +168,6 @@ You can set the following values:
   to `true` and an Application Load Balancer will be created that will
   forward traffic to the NGINX Ingress Controller.  If using the
   Application Load Balancer, you also need to set:
-    * `subnets` - set this to a comma-separated list of at least two subnet IDs.
     * `certificateArn` - set this to the ARN of the SSL certificate
       you are using for your site.
     * `clusterName` - set this to the name of your cluster.
@@ -176,6 +175,12 @@ You can set the following values:
       set up the application load balancer
     * `awsSecretKey` - set this to the secret key that corresponds
       with the `awsAccessKey`.
+* `nginx-ingress.controller.service.type`: default is `LoadBalancer`.
+  By default, the NGINX Ingress Controller will have an external IP
+  address.  If you are putting a load balancer or proxy in front of
+  the NGINX Ingress Controller, and you don't want the NGINX Ingress
+  Controller to have an external IP address, you can set
+  `nginx-ingress.controller.service.type` to `NodePort`.
 
 If you want to install a new version, first update your repository
 cache by running:

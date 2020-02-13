@@ -17,6 +17,9 @@ metadata:
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "1440m"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "1440m"
+    {{- if .Values.inClusterNGINXClusterIssuer }}
+    cert-manager.io/cluster-issuer: {{ .Values.inClusterNGINXClusterIssuer }}
+    {{- end }}
 spec:
   rules:
   - host: {{ .Values.daHostname }}
@@ -26,4 +29,10 @@ spec:
         backend:
           serviceName: {{ .Release.Name }}-docassemble-service
           servicePort: 5000
+  {{- if .Values.inClusterNGINXClusterIssuer }}
+  tls:
+    - hosts:
+        - {{ .Values.daHostname }}
+      secretName: {{ .Release.Name }}-docassemble-ingress-certificate-secret
+  {{- end }}
 {{- end }}

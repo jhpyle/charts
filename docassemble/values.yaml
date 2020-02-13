@@ -8,6 +8,7 @@ daMonitorImage: jhpyle/docassemble-monitor:latest
 daHostname: localhost
 postgresStorage: 5Gi
 redisStorage: 5Gi
+maxBodySize: 16m
 usingSslTermination: true
 redirectHttp: true
 exposeWebsockets: true
@@ -33,6 +34,7 @@ db:
   name: docassemble
   user: docassemble
   password: abc123
+  backup: false
   #port: 5432
   #tablePrefix: null
   #prefix: postgresql+psycopg2://

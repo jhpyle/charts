@@ -89,6 +89,8 @@
         - name: DBTABLEPREFIX
           value: "{{ .Values.db.tablePrefix }}"
 {{- end }}
+        - name: DBBACKUP
+          value: "{{ .Values.db.backup }}"
 {{- if .Values.inClusterRedis }}
         - name: REDIS
           value: "redis://{{ .Release.Name }}-redis-service"
@@ -119,4 +121,6 @@
           value: "{{ .Release.Name }}"
         - name: CHART_VERSION
           value: "{{ .Chart.Version }}"
+        - name: DAALLOWUPDATES
+          value: "{{ .Values.daAllowUpdates }}"
 {{- end -}}

@@ -5,6 +5,8 @@ metadata:
   name: {{ .Release.Name }}-docassemble-ingress-sticky
   annotations:
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/client-max-body-size: "{{ .Values.maxBodySize }}"
+    nginx.ingress.kubernetes.io/proxy-body-size: "{{ .Values.maxBodySize }}"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/affinity-mode: "persistent"

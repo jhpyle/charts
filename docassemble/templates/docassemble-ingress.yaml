@@ -4,6 +4,8 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-docassemble-ingress
   annotations:
+    nginx.ingress.kubernetes.io/client-max-body-size: "{{ .Values.maxBodySize }}"
+    nginx.ingress.kubernetes.io/proxy-body-size: "{{ .Values.maxBodySize }}"
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:

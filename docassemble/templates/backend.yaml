@@ -78,7 +78,7 @@ spec:
           value: "{{ if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}rabbitmq:{{ end }}{{ if and (not .Values.inClusterRabbitMQ) (not .Values.redisURL) }}redis:{{ end }}{{ if and (not .Values.inClusterPostgres) (not .Values.db.host) }}sql:{{ end }}log:cron:mail"
         {{ include "docassemble.commonEnvironment" . }}
         ports:
-        - containerPort: 8080
+        - containerPort: 8082
         - containerPort: 9001
         - containerPort: 514
         - containerPort: 25
@@ -106,7 +106,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /listlog/health_check
-            port: 8080
+            port: 8082
           initialDelaySeconds: 1560
           periodSeconds: 60
       volumes:

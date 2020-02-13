@@ -28,7 +28,7 @@ spec:
       initContainers:
       - name: init-backend
         image: busybox:1.28
-        command: ['sh', '-c', 'until wget -q -O /dev/null http://{{ .Release.Name }}-docassemble-backend-service:8080/listlog/health_check?ready=1; do echo waiting for backend; sleep 2; done;']
+        command: ['sh', '-c', 'until wget -q -O /dev/null http://{{ .Release.Name }}-docassemble-backend-service:8082/listlog/health_check?ready=1; do echo waiting for backend; sleep 2; done;']
       containers:
       - name: docassemble
         image: {{ .Values.daImage }}

@@ -129,6 +129,9 @@ You can set the following values:
 * `db.tablePrefix`: if your SQL database is shared among multiple
   implementations, you can use a table name prefix by setting
   `db.tablePrefix`.
+* `db.backup`: default is `false`.  If you want the backend server to
+  make a daily backup of your remote [PostgreSQL] server, set this to
+  `true`.
 * `inClusterRedis`: default is `true`.  By default, the chart runs a
   [Redis] server on the cluster.  If you are using [Amazon ElastiCache
   for Redis] or another external [Redis] service, set `inClusterRedis`
@@ -181,6 +184,11 @@ You can set the following values:
   the NGINX Ingress Controller, and you don't want the NGINX Ingress
   Controller to have an external IP address, you can set
   `nginx-ingress.controller.service.type` to `NodePort`.
+* `daAllowUpdates`: default is `true`.  If you do not want your
+  **docassemble** system to install software updates, set this to
+  `false`.
+* `maxBodySize`: default is `16m`.  The NGINX Ingress Controller
+  will reject POST requests with a body size larger than this amount.
 
 If you want to install a new version, first update your repository
 cache by running:
@@ -228,7 +236,7 @@ pod/exegetical-panther-rabbitmq-0                                     1/1     Ru
 pod/exegetical-panther-redis-6d69f57886-whtqn                         1/1     Running   0          4h19m
 
 NAME                                                       TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                                 AGE
-service/exegetical-panther-docassemble-backend-service     ClusterIP      10.0.238.13    <none>        8080/TCP,514/TCP,25/TCP                 4h19m
+service/exegetical-panther-docassemble-backend-service     ClusterIP      10.0.238.13    <none>        8082/TCP,514/TCP,25/TCP                 4h19m
 service/exegetical-panther-docassemble-monitor-service     ClusterIP      10.0.167.96    <none>        80/TCP                                  4h19m
 service/exegetical-panther-docassemble-service             ClusterIP      10.0.78.150    <none>        80/TCP,5000/TCP                         4h19m
 service/exegetical-panther-minio                           ClusterIP      10.0.221.93    <none>        9000/TCP                                4h19m

@@ -6,8 +6,8 @@ spec:
   selector:
     app: {{ .Release.Name }}-docassemble-backend
   ports:
-    - port: 8080
-      targetPort: 8080
+    - port: 8082
+      targetPort: 8082
       name: http
     - port: 514
       targetPort: 514

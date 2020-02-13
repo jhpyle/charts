@@ -22,6 +22,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Release.Name }}-postgres-config
+            - secretRef:
+                name: {{ .Release.Name }}-postgres-secret
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgredb

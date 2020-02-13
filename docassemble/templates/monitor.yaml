@@ -70,6 +70,9 @@ spec:
       - name: monitor
         image: "{{ .Values.daMonitorImage }}"
         imagePullPolicy: Always
+        envFrom:
+          - secretRef:
+              name: {{ .Release.Name }}-docassemble-secret
         env:
         - name: NAMESPACE
           value: "{{ .Release.Namespace }}"

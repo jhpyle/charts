@@ -138,6 +138,8 @@ You can set the following values:
 * `db.backup`: default is `false`.  If you want the backend server to
   make a daily backup of your remote [PostgreSQL] server, set this to
   `true`.
+* `db.exposeInternal`: default is `false`.  Expose the internal db to the network outside the
+  kubernetes cluster
 * `inClusterRedis`: default is `true`.  By default, the chart runs a
   [Redis] server on the cluster.  If you are using [Amazon ElastiCache
   for Redis] or another external [Redis] service, set `inClusterRedis`

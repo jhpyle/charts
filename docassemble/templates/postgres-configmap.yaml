@@ -7,7 +7,5 @@ metadata:
     app: {{ .Release.Name }}-postgres
 data:
   POSTGRES_DB: {{ .Values.db.name }}
-  POSTGRES_USER: {{ .Values.db.user }}
-  POSTGRES_PASSWORD: {{ .Values.db.password }}
   PGDATA: /var/lib/postgresql/data/pgdata
 {{- end }}

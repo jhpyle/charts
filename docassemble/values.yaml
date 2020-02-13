@@ -34,6 +34,7 @@ azure:
 #redisURL: null
 db:
   #host: null
+  exposeInternal: false
   name: docassemble
   user: docassemble
   password: abc123

@@ -35,6 +35,9 @@ spec:
       - name: docassemble
         image: {{ .Values.daImage }}
         imagePullPolicy: Always
+        envFrom:
+          - secretRef:
+              name: {{ .Release.Name }}-docassemble-secret
         env:
         - name: CONTAINERROLE
           value: "web:celery"

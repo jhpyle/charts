@@ -6,7 +6,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-postgres
 spec:
-  type: NodePort
+  type: {{ if .Values.db.exposeInternal }}NodePort{{ else }}ClusterIP{{ end }}
   ports:
    - port: 5432
   selector:

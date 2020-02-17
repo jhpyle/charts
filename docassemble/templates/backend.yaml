@@ -15,6 +15,7 @@ spec:
         app: {{ .Release.Name }}-docassemble-backend
         appType: docassemble
     spec:
+      {{- if .Values.multiNodeDeployment }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -25,6 +26,7 @@ spec:
                 values:
                 - docassemble
             topologyKey: kubernetes.io/hostname
+      {{- end }}
 {{- if or .Values.inClusterMinio .Values.inClusterPostgres .Values.inClusterRedis (and .Values.adminEmail .Values.adminPassword) }}
       initContainers:
   {{- if .Values.inClusterMinio }}
@@ -50,10 +52,13 @@ spec:
   {{- if and .Values.adminEmail .Values.adminPassword }}
       - name: init-credentials
         image: bash:4.4
-        command: ['bash', '-c', 'echo -e "export DA_ADMIN_EMAIL={{ .Values.adminEmail }}\nexport DA_ADMIN_PASSWORD={{ .Values.adminPassword }}" > /configdata/initial_credentials']
+        command: ['bash', '-c', 'echo -e "export DA_ADMIN_EMAIL=$DA_ADMIN_EMAIL\nexport DA_ADMIN_PASSWORD=$DA_ADMIN_PASSWORD" > /configdata/initial_credentials']
         volumeMounts:
         - name: config-data
           mountPath: /configdata
+        envFrom:
+          - secretRef:
+              name: {{ .Release.Name }}-docassemble-admin-secret
   {{- end }}
   {{- if .Values.inClusterPostgres }}
       - name: init-postgres
@@ -73,6 +78,9 @@ spec:
         volumeMounts:
         - name: config-data
           mountPath: /configdata
+        envFrom:
+          - secretRef:
+              name: {{ .Release.Name }}-docassemble-secret
         env:
         - name: CONTAINERROLE
           value: "{{ if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}rabbitmq:{{ end }}{{ if and (not .Values.inClusterRabbitMQ) (not .Values.redisURL) }}redis:{{ end }}{{ if and (not .Values.inClusterPostgres) (not .Values.db.host) }}sql:{{ end }}log:cron:mail"

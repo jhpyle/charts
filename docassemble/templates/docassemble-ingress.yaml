@@ -1,5 +1,5 @@
 {{- if .Values.inClusterNGINX }}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: {{ .Release.Name }}-docassemble-ingress
@@ -7,6 +7,9 @@ metadata:
     nginx.ingress.kubernetes.io/client-max-body-size: "{{ .Values.maxBodySize }}"
     nginx.ingress.kubernetes.io/proxy-body-size: "{{ .Values.maxBodySize }}"
     nginx.ingress.kubernetes.io/rewrite-target: /
+    {{- if .Values.inClusterNGINXClusterIssuer }}
+    cert-manager.io/cluster-issuer: {{ .Values.inClusterNGINXClusterIssuer }}
+    {{- end }}
 spec:
   rules:
   - host: {{ .Values.daHostname }}
@@ -16,4 +19,10 @@ spec:
         backend:
           serviceName: {{ .Release.Name }}-docassemble-service
           servicePort: 80
+  {{- if .Values.inClusterNGINXClusterIssuer }}
+  tls:
+    - hosts:
+        - {{ .Values.daHostname }}
+      secretName: {{ .Release.Name }}-docassemble-ingress-certificate-secret
+  {{- end }}
 {{- end }}

@@ -38,14 +38,6 @@
           value: "true"
         - name: S3BUCKET
           value: "{{ .Values.s3.bucket }}"
-  {{- if .Values.s3.accessKey }}
-        - name: S3ACCESSKEY
-          value: "{{ .Values.s3.accessKey }}"
-  {{- end }}
-  {{- if .Values.s3.secretKey }}
-        - name: S3SECRETACCESSKEY
-          value: "{{ .Values.s3.secretKey }}"
-  {{- end }}
   {{- if .Values.s3.region }}
         - name: S3REGION
           value: "{{ .Values.s3.region }}"
@@ -57,8 +49,6 @@
 {{- else if .Values.azure.enable }}
         - name: AZUREENABLE
           value: "true"
-        - name: AZUREACCOUNTKEY
-          value: "{{ .Values.azure.accountKey }}"
         - name: AZUREACCOUNTNAME
           value: "{{ .Values.azure.accountName }}"
         - name: AZURECONTAINER
@@ -75,8 +65,6 @@
           value: "{{ .Values.db.name }}"
         - name: DBUSER
           value: "{{ .Values.db.user }}"
-        - name: DBPASSWORD
-          value: "{{ .Values.db.password }}"
 {{- if .Values.db.port }}
         - name: DBPORT
           value: "{{ .Values.db.port }}"
@@ -91,13 +79,6 @@
 {{- end }}
         - name: DBBACKUP
           value: "{{ .Values.db.backup }}"
-{{- if .Values.inClusterRedis }}
-        - name: REDIS
-          value: "redis://{{ .Release.Name }}-redis-service"
-{{- else if .Values.redisURL }}
-        - name: REDIS
-          value: "{{ .Values.redisURL }}"
-{{- end }}
         - name: USECLOUDURLS
           value: "false"
         - name: DAEXPOSEWEBSOCKETS
@@ -108,13 +89,6 @@
 {{- end }}
         - name: BEHINDHTTPSLOADBALANCER
           value: "{{ .Values.usingSslTermination }}"
-{{- if .Values.inClusterRabbitMQ }}
-        - name: RABBITMQ
-          value: "pyamqp://user:{{ .Values.rabbitmq.rabbitmq.password }}@{{ .Release.Name }}-rabbitmq//"
-{{- else if .Values.amqpURL }}
-        - name: RABBITMQ
-          value: "{{ .Values.amqpURL }}"
-{{- end }}
         - name: LOGSERVER
           value: "{{ .Release.Name }}-docassemble-backend-service"
         - name: RELEASENAME

@@ -47,7 +47,7 @@ rules:
   - list
   - watch
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-docassemble-monitor
@@ -70,6 +70,9 @@ spec:
       - name: monitor
         image: "{{ .Values.daMonitorImage }}"
         imagePullPolicy: Always
+        envFrom:
+          - secretRef:
+              name: {{ .Release.Name }}-docassemble-secret
         env:
         - name: NAMESPACE
           value: "{{ .Release.Namespace }}"

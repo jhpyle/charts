@@ -13,7 +13,7 @@ spec:
       port: 6379
       targetPort: redis
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-redis
@@ -35,7 +35,7 @@ spec:
       hostname: {{ .Release.Name }}-redis
       volumes:
         - name: redis-data
-          persistentVolumeClaim: 
+          persistentVolumeClaim:
             claimName: {{ .Release.Name }}-redis-pv-claim
       containers:
         - name: redis

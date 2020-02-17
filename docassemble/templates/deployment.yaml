@@ -15,6 +15,7 @@ spec:
         app: {{ .Release.Name }}-docassemble
         appType: docassemble
     spec:
+      {{- if .Values.multiNodeDeployment }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -25,6 +26,7 @@ spec:
                 values:
                 - docassemble
             topologyKey: kubernetes.io/hostname
+      {{- end }}
       initContainers:
       - name: init-backend
         image: busybox:1.28
@@ -33,6 +35,9 @@ spec:
       - name: docassemble
         image: {{ .Values.daImage }}
         imagePullPolicy: Always
+        envFrom:
+          - secretRef:
+              name: {{ .Release.Name }}-docassemble-secret
         env:
         - name: CONTAINERROLE
           value: "web:celery"

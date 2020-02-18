@@ -1,5 +1,18 @@
-apiVersion: v1
+apiVersion: v2
 appVersion: "1.0.9"
 description: A platform for developing guided interviews and expert systems
 name: docassemble
 version: 1.0.9
+dependencies:
+  - name: nginx-ingress
+    version: 1.24.4
+    repository: https://kubernetes-charts.storage.googleapis.com
+    condition: inClusterNGINX,createInClusterNGINX
+  - name: minio
+    version: 2.5.18
+    repository: https://kubernetes-charts.storage.googleapis.com
+    condition: inClusterMinio
+  - name: rabbitmq
+    version: 6.10.1
+    repository: https://kubernetes-charts.storage.googleapis.com
+    condition: inClusterRabbitMQ

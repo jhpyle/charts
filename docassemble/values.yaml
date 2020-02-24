@@ -1,6 +1,6 @@
 multiNodeDeployment: true
 replicas: 2
-postgresImage: postgres:10.4
+postgresImage: postgres:11.5
 redisImage: redis:latest
 timeZone: America/New_York
 #locale: en_US.UTF-8 UTF-8
@@ -14,7 +14,7 @@ usingSslTermination: true
 redirectHttp: true
 exposeWebsockets: true
 inClusterNGINX: true
-sharedInClusterNGINX: false
+createInClusterNGINX: true
 #inClusterNGINXClusterIssuer: null
 inClusterMinio: true
 inClusterPostgres: true

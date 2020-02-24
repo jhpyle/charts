@@ -32,7 +32,7 @@ spec:
   {{- if .Values.inClusterNGINXClusterIssuer }}
   tls:
     - hosts:
-        - {{ .Values.daHostname }}
+      - {{ .Values.daHostname }}
       secretName: {{ .Release.Name }}-docassemble-ingress-certificate-secret
   {{- end }}
 {{- end }}

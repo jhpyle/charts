@@ -76,12 +76,13 @@ You can set the following values:
   need websockets support.  If you set `inClusterNGINX` to `false`,
   then the IP address of the application can be found under `<release
   name>-docassemble-service`.
-* `sharedInClusterNGINX`: default is `false`.  The default setup deploys
-  the ingress controller along side this container. You have already
-  deployed an ingress controller which is shared by all namespaces set
-  this to true
-* `inClusterNGINXClusterIssuer`: default is `null`.  If you have cert manager
-  deployed in your cluster set this to your cluster issuer name
+* `createInClusterNGINX`: default is `true`.  The default setup deploys
+  the ingress controller along side this container. If you have already
+  deployed an ingress controller which is shared by all namespaces, set
+  this to `false`.
+* `inClusterNGINXClusterIssuer`: default is `null`.  If you have an
+  SSL certificate manager deployed in your cluster, set this to the
+  cluster issuer name.
 * `inClusterMinio`: default is `true`.  By default, the chart runs
   [MinIO] in order to provide object storage.  If you would rather use
   [S3] or an [S3]-compatible object storage service, set
@@ -138,8 +139,10 @@ You can set the following values:
 * `db.backup`: default is `false`.  If you want the backend server to
   make a daily backup of your remote [PostgreSQL] server, set this to
   `true`.
-* `db.exposeInternal`: default is `false`.  Expose the internal db to the network outside the
-  kubernetes cluster
+* `db.exposeInternal`: default is `false`.  Set this to `true` if you
+  want to be able to expose the internal [PostgreSQL] database to the
+  network outside the kubernetes cluster.  (If `false`, the service
+  will use `ClusterIP`; if `true`, the service will use `NodePort`.)
 * `inClusterRedis`: default is `true`.  By default, the chart runs a
   [Redis] server on the cluster.  If you are using [Amazon ElastiCache
   for Redis] or another external [Redis] service, set `inClusterRedis`
@@ -197,11 +200,14 @@ You can set the following values:
   `false`.
 * `maxBodySize`: default is `16m`.  The NGINX Ingress Controller
   will reject POST requests with a body size larger than this amount.
-* `multiNodeDeployment`: default is `true`.  Set this to false if you
-   are deploying to a single node cluster. *IMPORTANT!* By doing so
-   you are eliminating a lot of the benefit to deploying on kubernetes,
-   therefore this should only be used when proving out technologies and
-   testing the deployment
+* `multiNodeDeployment`: default is `true`.  Set this to `false` if
+   you are deploying to a single node cluster.  Note that if you
+   deploy **docassemble** on a single node cluster, you are
+   eliminating a lot of the benefit to deploying on Kubernetes, so
+   only set `multiNodeDeployment` to `true` if you know what you are
+   doing.  The backend server and each application server require at
+   least 2GB of RAM, so if you do deploy on a single node, make sure
+   your node has plenty of resources.
 
 If you want to install a new version, first update your repository
 cache by running:

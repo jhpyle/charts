@@ -7,7 +7,7 @@ dependencies:
   - name: nginx-ingress
     version: 1.25.0
     repository: https://kubernetes-charts.storage.googleapis.com
-    condition: inClusterNGINX
+    condition: inClusterNGINX,createInClusterNGINX
   - name: minio
     version: 2.5.18
     repository: https://kubernetes-charts.storage.googleapis.com

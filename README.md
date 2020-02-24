@@ -76,10 +76,10 @@ You can set the following values:
   need websockets support.  If you set `inClusterNGINX` to `false`,
   then the IP address of the application can be found under `<release
   name>-docassemble-service`.
-* `sharedInClusterNGINX`: default is `false`.  The default setup deploys
+* `createInClusterNGINX`: default is `true`.  The default setup deploys
   the ingress controller along side this container. You have already
   deployed an ingress controller which is shared by all namespaces set
-  this to true
+  this to false
 * `inClusterNGINXClusterIssuer`: default is `null`.  If you have cert manager
   deployed in your cluster set this to your cluster issuer name
 * `inClusterMinio`: default is `true`.  By default, the chart runs

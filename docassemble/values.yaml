@@ -14,7 +14,7 @@ usingSslTermination: true
 redirectHttp: true
 exposeWebsockets: true
 inClusterNGINX: true
-sharedInClusterNGINX: false
+createInClusterNGINX: true
 #inClusterNGINXClusterIssuer: null
 inClusterMinio: true
 inClusterPostgres: true

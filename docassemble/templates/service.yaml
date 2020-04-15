@@ -22,6 +22,10 @@ spec:
       name: wshttp
       protocol: TCP
 {{- end }}
-{{- if and (not .Values.useAlb) (or (not .Values.inClusterNGINX) .Values.redirectHttp) }}
+{{- if and (not .Values.useAlb) (or (not .Values.inClusterNGINX) .Values.redirectHttp .Values.webAppServiceType) }}
+{{- if .Values.webAppServiceType }}
+  type: {{ .Values.webAppServiceType }}
+{{- else }}
   type: LoadBalancer
+{{- end }}
 {{- end }}

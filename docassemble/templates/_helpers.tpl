@@ -98,3 +98,15 @@
         - name: DAALLOWUPDATES
           value: "{{ .Values.daAllowUpdates }}"
 {{- end -}}
+        - name: USEMINIO
+{{- if .Values.inClusterMinio }}
+          value: "true"
+{{- else }}
+          value: "false"
+{{- end }}
+        - name: DASQLPING
+{{- if .Values.useSqlPing }}
+          value: "true"
+{{- else }}
+          value: "false"
+{{- end }}

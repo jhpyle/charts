@@ -208,6 +208,12 @@ You can set the following values:
    doing.  The backend server and each application server require at
    least 2GB of RAM, so if you do deploy on a single node, make sure
    your node has plenty of resources.
+* `webAppServiceType`: default is `LoadBalancer`.  This will be the
+  service `type` for the web application.  If your infrastructure does
+  not support this services `type`, you can set this to `NodePort`.
+* `useSqlPing`: default is `false`.  If your connection to the SQL
+  database will continually be terminated, set this to `true`.  There
+  is a cost in overhead, but it will prevent errors.
 
 If you want to install a new version, first update your repository
 cache by running:

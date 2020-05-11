@@ -198,6 +198,9 @@ You can set the following values:
 * `daAllowUpdates`: default is `true`.  If you do not want your
   **docassemble** system to install software updates, set this to
   `false`.
+* `daStableVersion`: default is `false`.  If you want your
+  **docassemble** system to only upgrade within the "stable" branch
+  (bug fixes and security fixes only), set this to `true`.
 * `maxBodySize`: default is `16m`.  The NGINX Ingress Controller
   will reject POST requests with a body size larger than this amount.
 * `multiNodeDeployment`: default is `true`.  Set this to `false` if
@@ -401,3 +404,4 @@ create cluster` command.  You can then install [Helm] and install the
 [Let's Encrypt]: https://letsencrypt.org/
 [API]: https://github.com/jhpyle/docassemble-mon
 [monitoring API]: https://github.com/jhpyle/docassemble-monitor
+[MySQL]: https://en.wikipedia.org/wiki/MySQL

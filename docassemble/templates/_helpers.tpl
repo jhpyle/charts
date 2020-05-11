@@ -97,6 +97,8 @@
           value: "{{ .Chart.Version }}"
         - name: DAALLOWUPDATES
           value: "{{ .Values.daAllowUpdates }}"
+        - name: DASTABLEVERSION
+          value: "{{ .Values.daStableVersion }}"
 {{- end -}}
         - name: USEMINIO
 {{- if .Values.inClusterMinio }}

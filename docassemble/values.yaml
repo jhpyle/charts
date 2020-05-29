@@ -2,6 +2,7 @@ multiNodeDeployment: true
 replicas: 2
 postgresImage: postgres:11.5
 redisImage: redis:latest
+busyboxImage: busybox:1.28
 timeZone: America/New_York
 #locale: en_US.UTF-8 UTF-8
 daImage: jhpyle/docassemble:latest
@@ -15,6 +16,42 @@ redirectHttp: true
 exposeWebsockets: true
 inClusterNGINX: true
 createInClusterNGINX: true
+resources:
+  backend:
+    requests:
+      memory: "4Gi"
+      cpu: "1"
+    limits:
+      memory: "6Gi"
+      cpu: "4"
+  deployment:
+    requests:
+      memory: "4Gi"
+      cpu: "2"
+    limits:
+      memory: "6Gi"
+      cpu: "8"
+  postgres:
+    requests:
+      memory: "3Gi"
+      cpu: "200m"
+    limits:
+      memory: "4Gi"
+      cpu: "1"
+  redis:
+    requests:
+      memory: "2Gi"
+      cpu: "1"
+    limits:
+      memory: "4Gi"
+      cpu: "4"
+  monitor:
+    requests:
+      memory: "100Mi"
+      cpu: "100m"
+    limits:
+      memory: "200Mi"
+      cpu: "500m"
 #inClusterNGINXClusterIssuer: null
 inClusterMinio: true
 inClusterPostgres: true

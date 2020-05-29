@@ -31,6 +31,13 @@ spec:
             preStop:
               exec:
                 command: ["sleep", "10"]
+          resources:
+            requests:
+              memory: "{{ .Values.resources.postgres.requests.memory }}"
+              cpu: "{{ .Values.resources.postgres.requests.cpu }}"
+            limits:
+              memory: "{{ .Values.resources.postgres.limits.memory }}"
+              cpu: "{{ .Values.resources.postgres.limits.cpu }}"
       volumes:
         - name: postgredb
           persistentVolumeClaim:

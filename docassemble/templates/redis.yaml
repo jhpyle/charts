@@ -51,6 +51,13 @@ spec:
             preStop:
               exec:
                 command: ["sleep", "10"]
+          resources:
+            requests:
+              memory: "{{ .Values.resources.redis.requests.memory }}"
+              cpu: "{{ .Values.resources.redis.requests.cpu }}"
+            limits:
+              memory: "{{ .Values.resources.redis.limits.memory }}"
+              cpu: "{{ .Values.resources.redis.limits.cpu }}"
       terminationGracePeriodSeconds: 60
 ---
 apiVersion: v1

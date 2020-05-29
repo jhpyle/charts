@@ -105,6 +105,13 @@ spec:
         - name: MINIO_REPLICAS
           value: "{{ .Values.minio.replicas }}"
         {{ include "docassemble.commonEnvironment" . }}
+        resources:
+          requests:
+            memory: "{{ .Values.resources.monitor.requests.memory }}"
+            cpu: "{{ .Values.resources.monitor.requests.cpu }}"
+          limits:
+            memory: "{{ .Values.resources.monitor.limits.memory }}"
+            cpu: "{{ .Values.resources.monitor.limits.cpu }}"
 ---
 kind: Service
 apiVersion: v1

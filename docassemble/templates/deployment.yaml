@@ -29,7 +29,7 @@ spec:
       {{- end }}
       initContainers:
       - name: init-backend
-        image: busybox:1.28
+        image: {{ .Values.busyboxImage }}
         command: ['sh', '-c', 'until wget -q -O /dev/null http://{{ .Release.Name }}-docassemble-backend-service:8082/listlog/health_check?ready=1; do echo waiting for backend; sleep 2; done;']
       containers:
       - name: docassemble
@@ -64,4 +64,11 @@ spec:
             port: 80
           initialDelaySeconds: 1560
           periodSeconds: 60
+        resources:
+          requests:
+            memory: "{{ .Values.resources.deployment.requests.memory }}"
+            cpu: "{{ .Values.resources.deployment.requests.cpu }}"
+          limits:
+            memory: "{{ .Values.resources.deployment.limits.memory }}"
+            cpu: "{{ .Values.resources.deployment.limits.cpu }}"
       terminationGracePeriodSeconds: 120

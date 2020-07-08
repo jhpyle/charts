@@ -5,14 +5,14 @@ name: docassemble
 version: 1.0.13
 dependencies:
   - name: nginx-ingress
-    version: 1.35.0
+    version: 1.40.2
     repository: https://kubernetes-charts.storage.googleapis.com
     condition: inClusterNGINX,createInClusterNGINX
   - name: minio
-    version: 5.0.17
+    version: 5.0.30
     repository: https://kubernetes-charts.storage.googleapis.com
     condition: inClusterMinio
   - name: rabbitmq
-    version: 6.23.0
+    version: 7.4.7
     repository: https://charts.bitnami.com/bitnami
     condition: inClusterRabbitMQ

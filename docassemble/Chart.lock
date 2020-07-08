@@ -1,12 +1,12 @@
 dependencies:
 - name: nginx-ingress
   repository: https://kubernetes-charts.storage.googleapis.com
-  version: 1.35.0
+  version: 1.40.2
 - name: minio
   repository: https://kubernetes-charts.storage.googleapis.com
-  version: 5.0.17
+  version: 5.0.30
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
-  version: 6.23.0
-digest: sha256:122520f86985c5138e20588cf747e8efc315b6cd1890c03672230bee90af9730
-generated: "2020-04-05T17:36:00.738582399-04:00"
+  version: 7.4.7
+digest: sha256:19b65295c6fb27d2bd61e505b42a2632d5baa2086edc4c5665a3df3913f9e136
+generated: "2020-07-07T20:31:58.327817624-04:00"

@@ -11,7 +11,9 @@ the [Helm] repository `http://charts.docassemble.org:8080`.
 
 ### Prerequisites
 
-* You have a [Kubernetes] cluster with three or more nodes.
+* You have a [Kubernetes] cluster with at least three nodes (or four
+  or more if you are running other applications like [MinIO],
+  [PostgreSQL], or [Redis] inside the cluster) with 8GB of RAM each.
 * You have installed [Helm] in the cluster.
 * You have made a final decision about what hostname to use to access
   the server.
@@ -54,8 +56,10 @@ You can set the following values:
 * `timeZone`: default is `America/New_York`.  This will be the time
   zone on the Linux machines running **docassemble**.
 * `replicas`: default is 2.  This indicates the number of application
-  servers to run.  If you have `n` nodes, you should set this to
-  `n`-1.  The default is appropriate if your cluster has three nodes.
+  servers to run.  The backend server and each application server need
+  to run on separate nodes, so if you have `n` nodes, you should set
+  this to `n`-1.  The default is appropriate if your cluster has three
+  or four nodes.
 * `usingSslTermination`: default is `true`.  If you are not going to
   access the site over HTTPS (which is not recommended except for
   temporary testing purposes), set this to `false`.
@@ -209,7 +213,7 @@ You can set the following values:
    eliminating a lot of the benefit to deploying on Kubernetes, so
    only set `multiNodeDeployment` to `true` if you know what you are
    doing.  The backend server and each application server require at
-   least 2GB of RAM, so if you do deploy on a single node, make sure
+   least 4GB of RAM, so if you do deploy on a single node, make sure
    your node has plenty of resources.
 * `webAppServiceType`: default is `LoadBalancer`.  This will be the
   service `type` for the web application.  If your infrastructure does

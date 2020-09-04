@@ -83,6 +83,13 @@ rabbitmq:
   rabbitmq:
     password: abc123
     erlangCookie: jmvk83gy7gsbf9kb37gk99hdf2d4jdz
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
 minio:
   persistence:
     subPath: minio
@@ -94,6 +101,11 @@ minio:
   defaultBucket:
     enabled: true
     name: docassemble-bucket
+  resources:
+    requests:
+      memory: 4Gi
+    limits:
+      memory: 4Gi
 nginx-ingress:
   rbac.create: true
   controller:
@@ -106,8 +118,22 @@ nginx-ingress:
       use-forwarded-headers: "true"
     service:
       enableHttps: false
+    resources:
+      limits:
+        cpu: 100m
+        memory: 64Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
   defaultBackend:
     nodeSelector:
       beta.kubernetes.io/os: linux
+    resources:
+      limits:
+        cpu: 10m
+        memory: 20Mi
+      requests:
+        cpu: 10m
+        memory: 20Mi
 # global:
 #   storageClass: null

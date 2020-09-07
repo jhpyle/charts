@@ -80,7 +80,7 @@ db:
   #tablePrefix: null
   #prefix: postgresql+psycopg2://
 rabbitmq:
-  rabbitmq:
+  auth:
     password: abc123
     erlangCookie: jmvk83gy7gsbf9kb37gk99hdf2d4jdz
   resources:

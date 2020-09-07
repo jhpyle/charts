@@ -1,8 +1,8 @@
 apiVersion: v2
-appVersion: 1.0.16
+appVersion: 1.0.17
 description: A platform for developing guided interviews and expert systems
 name: docassemble
-version: 1.0.16
+version: 1.0.17
 dependencies:
   - name: nginx-ingress
     version: 1.40.2

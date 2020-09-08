@@ -99,7 +99,7 @@ minio:
   secretKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCY"
   replicas: 4
   defaultBucket:
-    enabled: true
+    enabled: false
     name: docassemble-bucket
   resources:
     requests:

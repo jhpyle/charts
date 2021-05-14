@@ -1,8 +1,9 @@
 multiNodeDeployment: true
 replicas: 2
-postgresImage: postgres:11.5
+postgresImage: postgres:11.9
+bashImage: bash:5.1
 redisImage: redis:latest
-busyboxImage: busybox:1.28
+busyboxImage: busybox:1.33
 timeZone: America/New_York
 #locale: en_US.UTF-8 UTF-8
 daImage: jhpyle/docassemble:latest

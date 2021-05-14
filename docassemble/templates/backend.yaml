@@ -51,7 +51,7 @@ spec:
   {{- end }}
   {{- if and .Values.adminEmail .Values.adminPassword }}
       - name: init-credentials
-        image: bash:4.4
+        image: {{ .Values.bashImage }}
         command: ['bash', '-c', 'echo -e "export DA_ADMIN_EMAIL=$DA_ADMIN_EMAIL\nexport DA_ADMIN_PASSWORD=$DA_ADMIN_PASSWORD" > /configdata/initial_credentials']
         volumeMounts:
         - name: config-data

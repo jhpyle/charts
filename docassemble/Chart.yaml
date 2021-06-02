@@ -4,15 +4,15 @@ description: A platform for developing guided interviews and expert systems
 name: docassemble
 version: 1.0.20
 dependencies:
-  - name: nginx-ingress
-    version: 1.40.2
-    repository: https://kubernetes-charts.storage.googleapis.com
+  - name: ingress-nginx
+    version: 3.31.0
+    repository: https://kubernetes.github.io/ingress-nginx
     condition: inClusterNGINX,createInClusterNGINX
-  - name: minio
-    version: 5.0.30
-    repository: https://kubernetes-charts.storage.googleapis.com
+  - name: minio-operator
+    version: 4.1.0
+    repository: https://operator.min.io/
     condition: inClusterMinio
   - name: rabbitmq
-    version: 7.4.7
+    version: 8.15.2
     repository: https://charts.bitnami.com/bitnami
     condition: inClusterRabbitMQ

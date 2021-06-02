@@ -92,13 +92,17 @@ rabbitmq:
       cpu: 1000m
       memory: 2Gi
 minio:
+  CONSOLE_PBKDF_PASSPHRASE: AFA324GwSWEFfsSFS4FE
+  CONSOLE_PBKDF_SALT: GDFGHFWBC467fFD3FJWN
+  CONSOLE_ACCESS_KEY: TU5HVSG35946FHD3FDGD
+  CONSOLE_SECRET_KEY: T578YFRNV4CXS42FD435
   persistence:
     subPath: minio
     size: 10Gi
-  mode: distributed
+  volumesPerServer: 4
   accessKey: "AKIAIOSFODNN7"
   secretKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCY"
-  replicas: 4
+  replicas: 2
   defaultBucket:
     enabled: false
     name: docassemble-bucket
@@ -107,7 +111,44 @@ minio:
       memory: 4Gi
     limits:
       memory: 4Gi
-nginx-ingress:
+  consoleImage: minio/console:v0.7.4
+  mcImage:
+    repository: minio/minio
+    tag: RELEASE.2021-05-27T22-06-31Z
+  console:
+    image:
+      repository: minio/console
+      tag: v0.7.4
+      pullPolicy: IfNotPresent
+minio-operator:
+  operator:
+    clusterDomain: ""
+    nsToWatch: ""
+    image:
+      repository: minio/operator
+      tag: v4.1.0
+      pullPolicy: IfNotPresent
+    imagePullSecrets: []
+    replicaCount: 1
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      runAsNonRoot: true
+      fsGroup: 1000
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+        ephemeral-storage: 500Mi
+  console:
+    image:
+      repository: minio/console
+      tag: v0.7.4
+      pullPolicy: IfNotPresent
+    replicaCount: 1
+    resources: {}
+  tenants: []
+ingress-nginx:
   rbac.create: true
   controller:
     replicaCount: 2

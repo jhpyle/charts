@@ -24,12 +24,12 @@
         - name: S3ACCESSKEY
           valueFrom:
             secretKeyRef:
-              name: {{ .Release.Name }}-minio
+              name: {{ .Release.Name }}-minio-creds-secret
               key: accesskey
         - name: S3SECRETACCESSKEY
           valueFrom:
             secretKeyRef:
-              name: {{ .Release.Name }}-minio
+              name: {{ .Release.Name }}-minio-creds-secret
               key: secretkey
         - name: S3ENDPOINTURL
           value: "http://{{ .Release.Name }}-minio:9000"

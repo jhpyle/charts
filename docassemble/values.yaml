@@ -7,6 +7,7 @@ busyboxImage: busybox:1.33
 timeZone: America/New_York
 #locale: en_US.UTF-8 UTF-8
 daImage: jhpyle/docassemble:latest
+daImagePullPolicy: Always
 daMonitorImage: jhpyle/docassemble-monitor:latest
 daHostname: localhost
 postgresStorage: 5Gi

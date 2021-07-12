@@ -74,7 +74,7 @@ spec:
       containers:
       - name: docassemble
         image: {{ .Values.daImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.daImagePullPolicy }}
         volumeMounts:
         - name: config-data
           mountPath: /configdata

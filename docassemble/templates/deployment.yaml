@@ -34,7 +34,7 @@ spec:
       containers:
       - name: docassemble
         image: {{ .Values.daImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.daImagePullPolicy }}
         envFrom:
           - secretRef:
               name: {{ .Release.Name }}-docassemble-secret

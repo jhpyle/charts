@@ -73,6 +73,8 @@ You can set the following values:
   IP address of `<release-name>-docassemble-redirect-service`.
 * `daImage`: default is `jhpyle/docassemble:latest`.  This is the
   image of **docassemble** that you want to use.
+* `daImagePullPolicy`: default is `Always`.  This is the image pull
+  policy for **docassemble** image.
 * `inClusterNGINX`: default is `true`.  By default, the chart runs
   NGINX inside the cluster in order to provide sticky session support
   for websockets communication.  The Live Help features use

@@ -29,12 +29,13 @@ spec:
       {{- end }}
       initContainers:
       - name: init-backend
-        image: {{ .Values.busyboxImage }}
+        image: {{ template "docassemble.busyboxImage" . }}
+        imagePullPolicy: {{ .Values.busyboxImage.pullPolicy | quote }}
         command: ['sh', '-c', 'until wget -q -O /dev/null http://{{ .Release.Name }}-docassemble-backend-service:8082/listlog/health_check?ready=1; do echo waiting for backend; sleep 2; done;']
       containers:
       - name: docassemble
-        image: {{ .Values.daImage }}
-        imagePullPolicy: Always
+        image: {{ template "docassemble.daImage" . }}
+        imagePullPolicy: {{ .Values.daImage.pullPolicy | quote }}
         envFrom:
           - secretRef:
               name: {{ .Release.Name }}-docassemble-secret

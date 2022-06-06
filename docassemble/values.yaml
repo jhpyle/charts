@@ -1,58 +1,61 @@
 multiNodeDeployment: true
 replicas: 2
-postgresImage: postgres:11.9
-bashImage: bash:5.1
-redisImage: redis:latest
-busyboxImage: busybox:1.33
+clusterDomain: cluster.local
+bashImage:
+  registry: docker.io
+  repository: bash
+  tag: 5.1.16
+  pullPolicy: IfNotPresent
+busyboxImage:
+  registry: docker.io
+  repository: busybox
+  tag: 1.34.1
+  pullPolicy: IfNotPresent
 timeZone: America/New_York
 #locale: en_US.UTF-8 UTF-8
-daImage: jhpyle/docassemble:latest
-daMonitorImage: jhpyle/docassemble-monitor:latest
+daImage:
+  registry: docker.io
+  repository: jhpyle/docassemble
+  tag: latest
+  pullPolicy: Always
+daMonitorImage:
+  registry: docker.io
+  repository: jhpyle/docassemble-monitor
+  tag: latest
+  pullPolicy: Always
+albImage:
+  registry: docker.io
+  repository: amazon/aws-alb-ingress-controller
+  tag: v2.4.2
+  pullPolicy: IfNotPresent
 daHostname: localhost
-postgresStorage: 5Gi
-redisStorage: 5Gi
 maxBodySize: 16m
 usingSslTermination: true
 redirectHttp: true
 exposeWebsockets: true
 inClusterNGINX: true
-createInClusterNGINX: true
 resources:
   backend:
     requests:
-      memory: "4Gi"
-      cpu: "1"
+      memory: 1Gi
+      cpu: 200m
     limits:
-      memory: "6Gi"
-      cpu: "4"
+      memory: 3Gi
+      cpu: 4
   deployment:
     requests:
-      memory: "4Gi"
-      cpu: "2"
+      memory: 2Gi
+      cpu: 200m
     limits:
-      memory: "6Gi"
-      cpu: "8"
-  postgres:
-    requests:
-      memory: "3Gi"
-      cpu: "200m"
-    limits:
-      memory: "4Gi"
-      cpu: "1"
-  redis:
-    requests:
-      memory: "2Gi"
-      cpu: "1"
-    limits:
-      memory: "4Gi"
-      cpu: "4"
+      memory: 4Gi
+      cpu: 4
   monitor:
     requests:
-      memory: "100Mi"
-      cpu: "100m"
+      memory: 100Mi
+      cpu: 10m
     limits:
-      memory: "200Mi"
-      cpu: "500m"
+      memory: 200Mi
+      cpu: 125m
 #inClusterNGINXClusterIssuer: null
 inClusterMinio: true
 inClusterPostgres: true
@@ -60,7 +63,7 @@ inClusterRedis: true
 inClusterRabbitMQ: true
 s3:
   enable: false
-  #bucket: null
+  bucket: docassemble-bucket
   #accessKey: null
   #secretKey: null
 azure:
@@ -72,88 +75,104 @@ azure:
 #redisURL: null
 db:
   #host: null
-  exposeInternal: false
-  name: docassemble
-  user: docassemble
-  password: abc123
+  #name: docassemble
+  #user: docassemble
+  #password: abc123
   backup: false
   #port: 5432
   #tablePrefix: null
   #prefix: postgresql+psycopg2://
 rabbitmq:
+  clusterDomain: cluster.local
+  volumePermissions:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: bitnami/bitnami-shell
+      tag: 10-debian-10-r444
+      pullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  image:
+    registry: docker.io
+    repository: bitnami/rabbitmq
+    tag: 3.10.5-debian-10-r0
+    debug: true
   auth:
     password: abc123
     erlangCookie: jmvk83gy7gsbf9kb37gk99hdf2d4jdz
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 2Gi
-    requests:
-      cpu: 1000m
-      memory: 2Gi
-minio:
-  CONSOLE_PBKDF_PASSPHRASE: AFA324GwSWEFfsSFS4FE
-  CONSOLE_PBKDF_SALT: GDFGHFWBC467fFD3FJWN
-  CONSOLE_ACCESS_KEY: TU5HVSG35946FHD3FDGD
-  CONSOLE_SECRET_KEY: T578YFRNV4CXS42FD435
   persistence:
-    subPath: minio
-    size: 10Gi
-  volumesPerServer: 4
-  accessKey: "AKIAIOSFODNN7"
-  secretKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCY"
-  replicas: 2
-  defaultBucket:
-    enabled: false
-    name: docassemble-bucket
+    size: 2Gi
+  resources:
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+minio:
+  clusterDomain: cluster.local
+  persistence:
+    size: 5Gi
+  auth:
+    rootUser: "AKIAIOSFOD"
+    rootPassword: "wJalrXUtnFEMI/K7MDENG/bPxRfiCY1R23r2wer"
+  mode: distributed
   resources:
     requests:
-      memory: 4Gi
+      cpu: 128m
+      memory: 512Mi
     limits:
-      memory: 4Gi
-  consoleImage: minio/console:v0.7.4
-  mcImage:
-    repository: minio/minio
-    tag: RELEASE.2021-05-27T22-06-31Z
-  console:
+      cpu: 1
+      memory: 2Gi
+  clientImage:
+    registry: docker.io
+    repository: bitnami/minio-client
+    tag: 2022.5.9-debian-10-r23
+    pullPolicy: IfNotPresent
+  image:
+    registry: docker.io
+    repository: bitnami/minio
+    tag: 2022.6.3-debian-10-r0
+    pullPolicy: IfNotPresent
+  volumePermissions:
+    enabled: true
     image:
-      repository: minio/console
-      tag: v0.7.4
+      registry: docker.io
+      repository: bitnami/bitnami-shell
+      tag: 10-debian-10-r444
       pullPolicy: IfNotPresent
-minio-operator:
-  operator:
-    clusterDomain: ""
-    nsToWatch: ""
-    image:
-      repository: minio/operator
-      tag: v4.1.0
-      pullPolicy: IfNotPresent
-    imagePullSecrets: []
-    replicaCount: 1
-    securityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-      runAsNonRoot: true
-      fsGroup: 1000
     resources:
       requests:
-        cpu: 200m
+        cpu: 128m
         memory: 256Mi
-        ephemeral-storage: 500Mi
-  console:
-    image:
-      repository: minio/console
-      tag: v0.7.4
-      pullPolicy: IfNotPresent
-    replicaCount: 1
-    resources: {}
-  tenants: []
+      limits:
+        cpu: 1
+        memory: 1Gi
 ingress-nginx:
   rbac.create: true
   controller:
-    replicaCount: 2
+    watchIngressWithoutClass: true
+    image:
+      registry: k8s.gcr.io
+      image: ingress-nginx/controller
+      tag: "v1.2.1"
+      pullPolicy: IfNotPresent
+    admissionWebhooks:
+      patch:
+        image:
+          registry: k8s.gcr.io
+          image: ingress-nginx/kube-webhook-certgen
+          tag: v1.1.1
+          pullPolicy: IfNotPresent
+    replicaCount: 1
     nodeSelector:
-      beta.kubernetes.io/os: linux
+      kubernetes.io/os: linux
     publishService:
       enabled: true
     config:
@@ -162,20 +181,111 @@ ingress-nginx:
       enableHttps: false
     resources:
       limits:
-        cpu: 100m
-        memory: 64Mi
+        cpu: 200m
+        memory: 256Mi
       requests:
         cpu: 100m
-        memory: 64Mi
+        memory: 128Mi
   defaultBackend:
-    nodeSelector:
-      beta.kubernetes.io/os: linux
+    image:
+      registry: k8s.gcr.io
+      image: defaultbackend-amd64
+      tag: "1.5"
+      pullPolicy: IfNotPresent
+redis:
+  clusterDomain: cluster.local
+  nameOverride: daredis
+  architecture: standalone
+  auth:
+    enabled: true
+    password: abc123
+    sentinel: true
+  master:
+    terminationGracePeriodSeconds: 120
+    persistence:
+      size: 5Gi
     resources:
       limits:
-        cpu: 10m
-        memory: 20Mi
+        cpu: 4
+        memory: 4Gi
       requests:
-        cpu: 10m
-        memory: 20Mi
+        cpu: 100m
+        memory: 500Mi
+    livenessProbe:
+      enabled: false
+    readinessProbe:
+      enabled: false
+  volumePermissions:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: bitnami/bitnami-shell
+      tag: 10-debian-10-r444
+      pullPolicy: IfNotPresent
+      debug: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  image:
+    registry: docker.io
+    repository: bitnami/redis
+    tag: 6.2.7-debian-10-r23
+    pullPolicy: IfNotPresent
+    debug: true
+  sysctl:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: bitnami/bitnami-shell
+      tag: 10-debian-10-r444
+      pullPolicy: IfNotPresent
+      debug: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+postgresql:
+  clusterDomain: cluster.local
+  image:
+    registry: docker.io
+    repository: bitnami/postgresql
+    tag: 14.3.0-debian-10-r22
+    pullPolicy: IfNotPresent
+  volumePermissions:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: bitnami/bitnami-shell
+      tag: 10-debian-10-r444
+      pullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  persistence:
+    size: 5Gi
+  primary:
+    service:
+      type: ClusterIP
+      ports:
+        postgresql: 5432
+  auth:
+    database: docassemble
+    username: docassemble
+    password: abc123
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
 # global:
 #   storageClass: null

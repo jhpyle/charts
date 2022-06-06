@@ -1,4 +1,3 @@
-{{/* vim: set filetype=mustache: */}}
 {{- define "docassemble.commonEnvironment" -}}
         - name: ENVIRONMENT_TAKES_PRECEDENCE
           value: "true"
@@ -20,7 +19,7 @@
         - name: S3ENABLE
           value: "true"
         - name: S3BUCKET
-          value: {{ .Values.minio.defaultBucket.name }}
+          value: "docassemble-bucket"
         - name: S3ACCESSKEY
           valueFrom:
             secretKeyRef:
@@ -56,18 +55,27 @@
 {{- end }}
 {{- if .Values.inClusterPostgres }}
         - name: DBHOST
-          value: "{{ .Release.Name }}-postgres-service"
+          value: "{{ .Release.Name }}-postgresql"
 {{- else if .Values.db.host }}
         - name: DBHOST
           value: "{{ .Values.db.host }}"
 {{- end }}
+{{- if .Values.inClusterPostgres }}
+        - name: DBNAME
+          value: "{{ .Values.postgresql.auth.database }}"
+        - name: DBUSER
+          value: "{{ .Values.postgresql.auth.username }}"
+        - name: DBPORT
+          value: "{{ .Values.postgresql.primary.service.ports.postgresql }}"
+{{- else }}
         - name: DBNAME
           value: "{{ .Values.db.name }}"
         - name: DBUSER
           value: "{{ .Values.db.user }}"
-{{- if .Values.db.port }}
+  {{- if .Values.db.port }}
         - name: DBPORT
           value: "{{ .Values.db.port }}"
+  {{- end }}
 {{- end }}
 {{- if .Values.db.prefix }}
         - name: DBPREFIX
@@ -99,16 +107,65 @@
           value: "{{ .Values.daAllowUpdates }}"
         - name: DASTABLEVERSION
           value: "{{ .Values.daStableVersion }}"
-{{- end -}}
         - name: USEMINIO
-{{- if .Values.inClusterMinio }}
+  {{- if .Values.inClusterMinio }}
           value: "true"
-{{- else }}
+  {{- else }}
           value: "false"
-{{- end }}
+  {{- end }}
         - name: DASQLPING
-{{- if .Values.useSqlPing }}
+  {{- if .Values.useSqlPing }}
           value: "true"
-{{- else }}
+  {{- else }}
           value: "false"
-{{- end }}
+  {{- end }}
+{{- end -}}
+{{- define "docassemble.formatImage" -}}
+{{- $registryName := .imageRoot.registry -}}
+{{- $repositoryName := .imageRoot.repository -}}
+{{- $tag := .imageRoot.tag | toString -}}
+{{- if .global }}
+    {{- if .global.imageRegistry }}
+     {{- $registryName = .global.imageRegistry -}}
+    {{- end -}}
+{{- end -}}
+{{- if $registryName }}
+{{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+{{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+{{- define "docassemble.postgresql.image" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.postgresql.image "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.minio.clientImage" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.minio.clientImage "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.bashImage" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.bashImage "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.redis.image" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.redis.image "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.rabbitmq.image" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.rabbitmq.image "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.daImage" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.daImage "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.aws-alb-ingress-controller" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.albImage "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.busyboxImage" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.busyboxImage "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.daMonitorImage" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.daMonitorImage "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.redisUrl" -}}
+{{- if .Values.redis.auth.enabled -}}
+{{- printf "redis://:%s@%s-daredis-master" .Values.redis.auth.password .Release.Name -}}
+{{- else -}}
+{{- printf "redis://%s-daredis-master" .Release.Name -}}
+{{- end -}}
+{{- end -}}

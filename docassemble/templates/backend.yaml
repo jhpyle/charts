@@ -31,8 +31,9 @@ spec:
       initContainers:
   {{- if .Values.inClusterMinio }}
       - name: init-minio
-        image: {{ .Values.minio.mcImage.repository }}:{{ .Values.minio.mcImage.tag }}
-        command: ['sh', '-c', 'until { mc config host add minio "$S3_ENDPOINT_URL" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"; } do echo "waiting for minio"; sleep 10; done;']
+        image: {{ template "docassemble.minio.clientImage" . }}
+        imagePullPolicy: {{ .Values.minio.image.pullPolicy | quote }}
+        command: ['sh', '-c', 'until { mc config host add minio "$S3_ENDPOINT_URL" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"; } do echo "waiting for minio"; sleep 10; done; sleep 10; mc mb --ignore-existing "$S3_BUCKET"']
         env:
         - name: S3_ACCESS_KEY
           valueFrom:
@@ -47,12 +48,13 @@ spec:
         - name: S3_ENDPOINT_URL
           value: "http://{{ .Release.Name }}-minio:9000"
         - name: S3_BUCKET
-          value: "{{ .Values.minio.defaultBucket.name }}"
+          value: "docassemble-bucket"
   {{- end }}
   {{- if and .Values.adminEmail .Values.adminPassword }}
       - name: init-credentials
-        image: {{ .Values.bashImage }}
-        command: ['bash', '-c', 'echo -e "export DA_ADMIN_EMAIL=$DA_ADMIN_EMAIL\nexport DA_ADMIN_PASSWORD=$DA_ADMIN_PASSWORD" > /configdata/initial_credentials']
+        image: {{ template "docassemble.bashImage" . }}
+        imagePullPolicy: {{ .Values.bashImage.pullPolicy | quote }}
+        command: ['bash', '-c', 'echo -e "export DA_ADMIN_EMAIL=$DA_ADMIN_EMAIL\nexport DA_ADMIN_PASSWORD=$DA_ADMIN_PASSWORD\nexport DA_ADMIN_API_KEY=$DA_ADMIN_API_KEY" > /configdata/initial_credentials']
         volumeMounts:
         - name: config-data
           mountPath: /configdata
@@ -62,19 +64,27 @@ spec:
   {{- end }}
   {{- if .Values.inClusterPostgres }}
       - name: init-postgres
-        image: {{ .Values.postgresImage }}
-        command: ['sh', '-c', 'until pg_isready -h {{ .Release.Name }}-postgres-service -p 5432; do echo waiting for postgres; sleep 2; done;']
+        image: {{ template "docassemble.postgresql.image" . }}
+        imagePullPolicy: {{ .Values.postgresql.image.pullPolicy | quote }}
+        command: ['sh', '-c', 'until pg_isready -h {{ .Release.Name }}-postgresql -p 5432 -U {{ .Values.postgresql.auth.username }}; do echo waiting for postgres; sleep 2; done;']
   {{- end }}
   {{- if .Values.inClusterRedis }}
       - name: init-redis
-        image: {{ .Values.redisImage }}
-        command: ['sh', '-c', 'until redis-cli -h {{ .Release.Name }}-redis-service ping; do echo waiting for redis; sleep 2; done;']
+        image: {{ template "docassemble.redis.image" . }}
+        imagePullPolicy: {{ .Values.redis.image.pullPolicy | quote }}
+        command: ['sh', '-c', 'until redis-cli -h {{ .Release.Name }}-daredis-master ping; do echo waiting for redis; sleep 2; done;']
+  {{- end }}
+  {{- if .Values.inClusterRabbitMQ }}
+      - name: init-rabbitmq
+        image: {{ template "docassemble.rabbitmq.image" . }}
+        imagePullPolicy: {{ .Values.redis.image.pullPolicy | quote }}
+        command: ['sh', '-c', 'until rabbitmqctl --erlang-cookie {{ .Values.rabbitmq.auth.erlangCookie | quote }} --longnames --node "rabbit@{{ .Release.Name }}-rabbitmq-0.{{ .Release.Name }}-rabbitmq-headless.default.svc.{{ .Values.clusterDomain }}" status; do echo waiting for rabbitmq; sleep 2; done;']
   {{- end }}
 {{- end }}
       containers:
       - name: docassemble
-        image: {{ .Values.daImage }}
-        imagePullPolicy: Always
+        image: {{ template "docassemble.daImage" . }}
+        imagePullPolicy: {{ .Values.daImage.pullPolicy | quote }}
         volumeMounts:
         - name: config-data
           mountPath: /configdata

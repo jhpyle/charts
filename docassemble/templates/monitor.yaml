@@ -68,8 +68,8 @@ spec:
       serviceAccountName: {{ .Release.Name }}-mon-sa
       containers:
       - name: monitor
-        image: "{{ .Values.daMonitorImage }}"
-        imagePullPolicy: Always
+        image: {{ template "docassemble.daMonitorImage" . }}
+        imagePullPolicy: {{ .Values.daMonitorImage.pullPolicy | quote }}
         envFrom:
           - secretRef:
               name: {{ .Release.Name }}-docassemble-secret
@@ -79,17 +79,17 @@ spec:
         - name: REPLICAS
           value: "{{ .Values.replicas }}"
         - name: POSTGRES_IMAGE
-          value: "{{ .Values.postgresImage }}"
+          value: {{ template "docassemble.postgresql.image" . }}
         - name: REDIS_IMAGE
-          value: "{{ .Values.redisImage }}"
+          value: {{ template "docassemble.redis.image" . }}
         - name: DA_IMAGE
-          value: "{{ .Values.daImage }}"
+          value: {{ template "docassemble.daImage" . }}
         - name: DA_MONITOR_IMAGE
-          value: "{{ .Values.daMonitorImage }}"
+          value: {{ template "docassemble.daMonitorImage" . }}
         - name: POSTGRES_STORAGE
-          value: "{{ .Values.postgresStorage }}"
+          value: "{{ .Values.postgresql.persistence.size }}"
         - name: REDIS_STORAGE
-          value: "{{ .Values.redisStorage }}"
+          value: "{{ .Values.redis.master.persistence.size }}"
         - name: IN_CLUSTER_NGINX
           value: "{{ .Values.inClusterNGINX }}"
         - name: IN_CLUSTER_MINIO
@@ -103,7 +103,7 @@ spec:
         - name: MINIO_STORAGE
           value: "{{ .Values.minio.persistence.size }}"
         - name: MINIO_REPLICAS
-          value: "{{ .Values.minio.replicas }}"
+          value: "{{ .Values.minio.replicaCount }}"
         {{ include "docassemble.commonEnvironment" . }}
         resources:
           requests:

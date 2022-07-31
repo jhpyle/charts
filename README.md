@@ -75,6 +75,29 @@ You can set the following values:
   `tag`, and `pullPolicy`. The default values are `registry:
   docker.io`, `repository: jhpyle/docassemble`, `tag: latest`, and
   `pullPolicy: Always`.
+* `readOnlyFileSystem`: default is `false`. If set to `true`, then the
+  file system on the **docassemble** pods will be mounted
+  read-only. As a consequence, the Configuration, Playground, and
+  Package Management systems are not available in the web application.
+  All changes to the system's software or configuration must be made
+  by modifying the image referred to by `daImage` or by editing Helm
+  chart values such as `daConfiguration`.
+* `daConfiguration`: undefined by default. If `readOnlyFileSystem` is
+  `True`, the `config.yml` file is a read-only file, the contents of
+  which are determined by Helm. To add Configuration directives that
+  are not pre-populated by Helm, you can define values under
+  `daConfiguration`. The directives that are defined outside of
+  `daConfiguration`, which you should not attempt to set inside of
+  `daConfiguration`, are `supervisor`, `enable playground`, `allow log
+  viewing`, `update on start`, `allow updates`, `allow configuration
+  editing`, `root owned`, `db`, `secretkey`, `os locale`, `timezone`,
+  `redis`, `rabbitmq`, `s3`, `azure`, `collect statistics`,
+  `kubernetes`, `log server`, `use minio`, `behind https load
+  balancer`, `external hostname`, `expose websockets`, `websockets
+  ip`, `websockets port`, `root`, `allow non-idempotent questions`,
+  `restrict input variables`, `web server`, `new markdown to docx`,
+  `new template markdown behavior`, `sql ping`, `default icons`, and
+  `enable unoconv`.
 * `inClusterNGINX`: default is `true`. By default, the chart runs
   NGINX inside the cluster in order to provide sticky session support
   for websockets communication. The Live Help features use
@@ -97,15 +120,18 @@ You can set the following values:
   [S3]-compatible object storage service, and you don't want to use an
   in-cluster [MinIO] service. You must set `inClusterMinio` to
   `false` for this to be effective.
-* `s3.bucket`: set this to the name of your [S3] bucket.
-* `s3.accessKey`: set this to access key for your [S3] bucket.
-* `s3.secretKey`: set this to secret access key for your [S3] bucket.
+* `s3.bucket`: set this to the name of your [S3] bucket (only set this
+  if `s3.enable` is true).
+* `s3.accessKey`: set this to access key for your [S3] bucket (only
+  set this if `s3.enable` is true).
+* `s3.secretKey`: set this to secret access key for your [S3] bucket
+  (only set this if `s3.enable` is true).
 * `s3.region`: set this to the region you want to use. This is
   required for [S3] but may not be required for [S3]-compatible
-  services.
+  services (only set this if `s3.enable` is true).
 * `s3.endpointURL`: if you are using an [S3]-compatible service other
   than [S3] itself, set this to the endpoint URL for the API of the
-  [S3]-compatible service.
+  [S3]-compatible service (only set this if `s3.enable` is true).
 * `azure.enable`: set this to `true` if you want to use [Azure blob
   storage] and you don't want to use an in-cluster [MinIO] service.
   You must set `inClusterMinio` to `false` for this to be effective.
@@ -223,6 +249,56 @@ You can set the following values:
 * `useSqlPing`: default is `false`. If your connection to the SQL
   database will continually be terminated, set this to `true`. There
   is a cost in overhead, but it will prevent errors.
+* `pythonVersion`: default is `3.10`. The value of this depends on the
+  version of the **docassemble** Docker image you are using. For
+  version 1.4.x, use `3.10`. For version 1.2.x or 1.3.x, use `3.8`.
+* `texliveVersion`: default is `2021`. The value of this depends on the
+  version of the **docassemble** Docker image you are using. For
+  version 1.4.x, use `2021`. For version 1.2.x or 1.3.x, use `2020`.
+* `syslogNgVersion`: default is `3.35`. The value of this depends on the
+  version of the **docassemble** Docker image you are using. For
+  version 1.4.x, use `3.35`. For version 1.2.x or 1.3.x, use `3.28`.
+
+The following values can be changed from their defaults in order to
+increase security.
+
+* `secretKey`: this is used as part of the encryption system in the
+  docassemble application. It is also used for encrypting passwords
+  for user accounts. Only change this when you are initializing a
+  system, because if you change it later, your passwords will not work
+  and interview answers will be inaccessible. Do not lose this key
+  because if you ever need to recreate your system from persistent
+  data storage, you will need this.
+* `minio.auth.rootUser`: the [MinIO] system uses a username and
+  password. This is the username.
+* `minio.auth.rootPassword`: the [MinIO] system uses a username and
+  password. This is the password.
+* `supervisor.username`: the **docassemble** web application pods and
+  the backend pod use [supervisord] to launch and restart component
+  services. The pods need to be able to communicate with each other
+  over port 9001 in order to trigger software installations and
+  restarts. For security, interprocess communication uses a username
+  and password. `supervisor.username` specifies the username.
+* `supervisor.password`: the password associated with
+  `supervisor.username`.
+* `rabbitmq.auth.password`: in order to launch a background task,
+  **docassemble** code needs to communicate with the pod running the
+  [RabbitMQ] task queue. `rabbitmq.auth.password` specifies the
+  password that [RabbitMQ] will accept.
+* `rabbitmq.auth.erlangCookie`: [RabbitMQ] nodes use a cookie to
+  authenticate with each other. `rabbitmq.auth.erlangCookie` specifies
+  the cookie.
+* `redis.auth.password`: the pods that run **docassemble** code need
+  to be able to access the [Redis] service. For security, access to
+  [Redis] requires a password. `redis.auth.password` specifies that
+  password.
+* `postgresql.auth.username`: when a [PostgreSQL] server is deployed
+  inside of the cluster, the pods that run **docassemble** code need
+  to be able to access the [PostgreSQL] database. For security, access
+  to the [PostgreSQL] requires a username
+  password. `postgresql.auth.username` specifies the username.
+* `postgresql.auth.password`: this is the password associated with
+  `postgresql.auth.username`.
 
 For more information about configuration options, see the
 [`values.yaml`] file in `jhpyle/charts` and the `values.yaml` files
@@ -478,3 +554,4 @@ helm install -f values.yaml mydocassemble jhpyle/docassemble
 [`kubectl port-forward`]: https://phoenixnap.com/kb/kubectl-port-forward
 [`values.yaml`]: https://github.com/jhpyle/charts/blob/master/docassemble/values.yaml
 [dependencies]: https://github.com/jhpyle/charts/tree/master/docassemble/charts
+[supervisord]: http://supervisord.org/

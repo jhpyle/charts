@@ -1,6 +1,28 @@
 multiNodeDeployment: true
 replicas: 2
 clusterDomain: cluster.local
+# For security you are strongly encouraged to set your
+# own secretKey. This is used for encrypting passwords and
+# interview answers. The secretKey must be exactly this
+# long:   |--------------------------------|
+secretKey: JmjajLcAXLvOGkDkbQKAEgIczAlPbfBo
+
+#daConfiguration:
+#  appname: Legal Helper
+#  brandname: Legal Helper Application
+#  allow demo: false
+#  debug: false
+
+daAllowUpdates: true
+
+syslogNgVersion: "3.35"
+pythonVersion: "3.10"
+texliveVersion: "2021"
+supervisor:
+  username: user
+  password: abc123abc123
+sslCertificate: ""
+sslKey: ""
 bashImage:
   registry: docker.io
   repository: bash
@@ -31,9 +53,11 @@ albImage:
 daHostname: localhost
 maxBodySize: 16m
 usingSslTermination: true
+useHttps: false
 redirectHttp: true
 exposeWebsockets: true
 inClusterNGINX: true
+webAppServiceType: ClusterIP
 resources:
   backend:
     requests:

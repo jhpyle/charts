@@ -59,8 +59,8 @@ spec:
         - name: config-data
           mountPath: /configdata
         envFrom:
-          - secretRef:
-              name: {{ .Release.Name }}-docassemble-admin-secret
+        - secretRef:
+            name: {{ .Release.Name }}-docassemble-admin-secret
   {{- end }}
   {{- if .Values.inClusterPostgres }}
       - name: init-postgres
@@ -85,15 +85,55 @@ spec:
       - name: docassemble
         image: {{ template "docassemble.daImage" . }}
         imagePullPolicy: {{ .Values.daImage.pullPolicy | quote }}
+{{- if .Values.readOnlyFileSystem }}
+        securityContext:
+          readOnlyRootFilesystem: true
+{{- end }}
         volumeMounts:
         - name: config-data
           mountPath: /configdata
+{{- if .Values.readOnlyFileSystem }}
+        - name: tmp
+          mountPath: /tmp
+        - name: varrun
+          mountPath: /var/run
+        - name: varlogsupervisor
+          mountPath: /var/log/supervisor
+        - name: varlognginx
+          mountPath: /var/log/nginx
+        - name: varlibsyslogng
+          mountPath: /var/lib/syslog-ng
+        - name: varlibnginx
+          mountPath: /var/lib/nginx
+        - name: varmail
+          mountPath: /var/mail
+        - name: varwwwcache
+          mountPath: /var/www/.cache
+        - name: varwwwconfig
+          mountPath: /var/www/.config
+        - name: varwwwtexlive
+          mountPath: /var/www/.texlive{{ .Values.texliveVersion }}
+        - name: log-vol
+          mountPath: /usr/share/docassemble/log
+        - name: configuration-vol
+          mountPath: /usr/share/docassemble/config
+          readOnly: true
+        - name: cron-vol
+          mountPath: /usr/share/docassemble/cron
+          readOnly: true
+        - name: syslogng-vol
+          mountPath: /usr/share/docassemble/syslogng
+          readOnly: true
+        - name: backend-site-config-vol
+          mountPath: /etc/nginx/sites-enabled
+          readOnly: true
+{{- end }}
         envFrom:
-          - secretRef:
-              name: {{ .Release.Name }}-docassemble-secret
+        - secretRef:
+            name: {{ .Release.Name }}-docassemble-secret
         env:
         - name: CONTAINERROLE
-          value: "{{ if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}rabbitmq:{{ end }}{{ if and (not .Values.inClusterRabbitMQ) (not .Values.redisURL) }}redis:{{ end }}{{ if and (not .Values.inClusterPostgres) (not .Values.db.host) }}sql:{{ end }}log:cron:mail"
+          value: "{{ if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}rabbitmq:{{ end }}{{ if and (not .Values.inClusterRabbitMQ) (not .Values.redisURL) }}redis:{{ end }}{{ if and (not .Values.inClusterPostgres) (not .Values.db.host) }}sql:{{ end }}log:cron{{- if not .Values.readOnlyFileSystem }}:mail{{ end }}"
         {{ include "docassemble.commonEnvironment" . }}
         ports:
         - containerPort: 8082
@@ -115,7 +155,7 @@ spec:
         readinessProbe:
           exec:
             command:
-              - /bin/bash
+              - "/bin/bash"
               - "-c"
               - "supervisorctl status cron | grep RUNNING"
           initialDelaySeconds: 30
@@ -137,4 +177,40 @@ spec:
       volumes:
       - name: config-data
         emptyDir: {}
+{{- if .Values.readOnlyFileSystem }}
+      - name: tmp
+        emptyDir: {}
+      - name: varrun
+        emptyDir: {}
+      - name: varlogsupervisor
+        emptyDir: {}
+      - name: varlognginx
+        emptyDir: {}
+      - name: varlibsyslogng
+        emptyDir: {}
+      - name: varlibnginx
+        emptyDir: {}
+      - name: varmail
+        emptyDir: {}
+      - name: varwwwcache
+        emptyDir: {}
+      - name: varwwwconfig
+        emptyDir: {}
+      - name: varwwwtexlive
+        emptyDir: {}
+      - name: log-vol
+        emptyDir: {}
+      - name: configuration-vol
+        configMap:
+          name: {{ .Release.Name }}-docassemble-configuration
+      - name: cron-vol
+        configMap:
+          name: {{ .Release.Name }}-docassemble-backend-cron
+      - name: syslogng-vol
+        configMap:
+          name: {{ .Release.Name }}-docassemble-backend-syslogng
+      - name: backend-site-config-vol
+        configMap:
+          name: {{ .Release.Name }}-docassemble-backend-site-config
+{{- end }}
       terminationGracePeriodSeconds: 120

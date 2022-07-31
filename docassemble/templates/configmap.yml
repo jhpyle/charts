@@ -1,0 +1,704 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-docassemble-syslogng
+data:
+  syslog-ng.conf: |
+    @version: {{ .Values.syslogNgVersion }}
+    @include "scl.conf"
+    @include "`scl-root`/system/tty10.conf"
+
+    # Syslog-ng configuration file, compatible with default Debian syslogd
+    # installation.
+
+    # First, set some global options.
+    options { chain_hostnames(off); flush_lines(0); use_dns(no); use_fqdn(no);
+        owner("root"); group("adm"); perm(0640); stats_freq(0);
+        bad_hostname("^gconfd$"); dns_cache(no);
+    };
+
+    ########################
+    # Sources
+    ########################
+    # This is the default behavior of sysklogd package
+    # Logs may come from unix stream, but not from another machine.
+    #
+    source s_src {
+    #       system();
+           internal();
+    };
+
+    # If you wish to get logs from remote machine you should uncomment
+    # this and comment the above source line.
+    #
+    #source s_net { tcp(ip(127.0.0.1) port(1000)); };
+
+    ########################
+    # Destinations
+    ########################
+    # First some standard logfile
+    #
+    destination d_auth { file("/var/log/auth.log"); };
+    destination d_cron { file("/var/log/cron.log"); };
+    destination d_daemon { file("/var/log/daemon.log"); };
+    destination d_lpr { file("/var/log/lpr.log"); };
+    destination d_mail { file("/var/log/mail.log"); };
+    destination d_syslog { file("/var/log/syslog"); };
+    destination d_user { file("/var/log/user.log"); };
+    destination d_uucp { file("/var/log/uucp.log"); };
+
+    # This files are the log come from the mail subsystem.
+    #
+    destination d_mailinfo { file("/var/log/mail.info"); };
+    destination d_mailwarn { file("/var/log/mail.warn"); };
+    destination d_mailerr { file("/var/log/mail.err"); };
+
+    # Logging for INN news system
+    #
+    destination d_newscrit { file("/var/log/news/news.crit"); };
+    destination d_newserr { file("/var/log/news/news.err"); };
+    destination d_newsnotice { file("/var/log/news/news.notice"); };
+
+    # Some 'catch-all' logfiles.
+    #
+    destination d_debug { file("/var/log/debug"); };
+    destination d_error { file("/var/log/error"); };
+    destination d_messages { file("/var/log/messages"); };
+
+    # The root's console.
+    #
+    destination d_console { usertty("root"); };
+
+    # Virtual console.
+    #
+    destination d_console_all { file(`tty10`); };
+
+    # The named pipe /dev/xconsole is for the nsole' utility.  To use it,
+    # you must invoke nsole' with the -file' option:
+    #
+    #    $ xconsole -file /dev/xconsole [...]
+    #
+    destination d_xconsole { pipe("/dev/xconsole"); };
+
+    # Debian only
+    destination d_ppp { file("/var/log/ppp.log"); };
+
+    ########################
+    # Filters
+    ########################
+    # Here's come the filter options. With this rules, we can set which 
+    # message go where.
+
+    filter f_dbg { level(debug); };
+    filter f_info { level(info); };
+    filter f_notice { level(notice); };
+    filter f_warn { level(warn); };
+    filter f_err { level(err); };
+    filter f_crit { level(crit .. emerg); };
+
+    filter f_debug { level(debug) and not facility(auth, authpriv, news, mail); };
+    filter f_error { level(err .. emerg) ; };
+    filter f_messages { level(info,notice,warn) and 
+                        not facility(auth,authpriv,cron,daemon,mail,news); };
+
+    filter f_auth { facility(auth, authpriv) and not filter(f_debug); };
+    filter f_cron { facility(cron) and not filter(f_debug); };
+    filter f_daemon { facility(daemon) and not filter(f_debug); };
+    filter f_lpr { facility(lpr) and not filter(f_debug); };
+    filter f_local { facility(local0, local1, local3, local4, local5,
+                            local6, local7) and not filter(f_debug); };
+    filter f_mail { facility(mail) and not filter(f_debug); };
+    filter f_news { facility(news) and not filter(f_debug); };
+    filter f_syslog3 { not facility(auth, authpriv, mail) and not filter(f_debug); };
+    filter f_user { facility(user) and not filter(f_debug); };
+    filter f_uucp { facility(uucp) and not filter(f_debug); };
+
+    filter f_cnews { level(notice, err, crit) and facility(news); };
+    filter f_cother { level(debug, info, notice, warn) or facility(daemon, mail); };
+
+    filter f_ppp { facility(local2) and not filter(f_debug); };
+    filter f_console { level(warn .. emerg); };
+
+    ########################
+    # Log paths
+    ########################
+    log { source(s_src); filter(f_auth); destination(d_auth); };
+    log { source(s_src); filter(f_cron); destination(d_cron); };
+    log { source(s_src); filter(f_daemon); destination(d_daemon); };
+    log { source(s_src); filter(f_lpr); destination(d_lpr); };
+    log { source(s_src); filter(f_syslog3); destination(d_syslog); };
+    log { source(s_src); filter(f_user); destination(d_user); };
+    log { source(s_src); filter(f_uucp); destination(d_uucp); };
+
+    log { source(s_src); filter(f_mail); destination(d_mail); };
+    #log { source(s_src); filter(f_mail); filter(f_info); destination(d_mailinfo); };
+    #log { source(s_src); filter(f_mail); filter(f_warn); destination(d_mailwarn); };
+    #log { source(s_src); filter(f_mail); filter(f_err); destination(d_mailerr); };
+
+    log { source(s_src); filter(f_news); filter(f_crit); destination(d_newscrit); };
+    log { source(s_src); filter(f_news); filter(f_err); destination(d_newserr); };
+    log { source(s_src); filter(f_news); filter(f_notice); destination(d_newsnotice); };
+    #log { source(s_src); filter(f_cnews); destination(d_console_all); };
+    #log { source(s_src); filter(f_cother); destination(d_console_all); };
+
+    #log { source(s_src); filter(f_ppp); destination(d_ppp); };
+
+    log { source(s_src); filter(f_debug); destination(d_debug); };
+    log { source(s_src); filter(f_error); destination(d_error); };
+    log { source(s_src); filter(f_messages); destination(d_messages); };
+
+    log { source(s_src); filter(f_console); destination(d_console_all);
+                destination(d_xconsole); };
+    log { source(s_src); filter(f_crit); destination(d_console); };
+
+    # All messages send to a remote site
+    #
+    #log { source(s_src); destination(d_net); };
+
+    @include "/etc/syslog-ng/conf.d/*.conf"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-docassemble-backend-syslogng
+data:
+  syslog-ng.conf: |
+    @version: {{ .Values.syslogNgVersion }}
+    @include "scl.conf"
+    @include "`scl-root`/system/tty10.conf"
+
+    # Syslog-ng configuration file, compatible with default Debian syslogd
+    # installation.
+
+    # First, set some global options.
+    options { chain_hostnames(off); flush_lines(0); use_dns(no); use_fqdn(no);
+              owner("root"); group("adm"); perm(0640); stats_freq(0);
+              bad_hostname("^gconfd$"); dns_cache(no);
+    };
+
+    ########################
+    # Sources
+    ########################
+    # This is the default behavior of sysklogd package
+    # Logs may come from unix stream, but not from another machine.
+    #
+    #source s_src {
+    #       system();
+    #       internal();
+    #};
+
+    # If you wish to get logs from remote machine you should uncomment
+    # this and comment the above source line.
+    #
+    source s_network {
+        syslog(transport("tcp") port(514));
+    };
+
+    ########################
+    # Destinations
+    ########################
+    # First some standard logfile
+    #
+    destination d_nginx_access { file("/usr/share/docassemble/log/nginx_access.log" owner("www-data") group("www-data") perm(0600)); };
+    destination d_nginx_error { file("/usr/share/docassemble/log/nginx_error.log" owner("www-data") group("www-data") perm(0600)); };
+    destination d_docassemble { file("/usr/share/docassemble/log/docassemble.log" owner("www-data") group("www-data") perm(0600)); };
+    destination d_websockets { file("/usr/share/docassemble/log/websockets.log" owner("www-data") group("www-data") perm(0600)); };
+    destination d_daworker { file("/usr/share/docassemble/log/worker.log" owner("www-data") group("www-data") perm(0600)); };
+    destination d_daworkersingle { file("/usr/share/docassemble/log/single_worker.log" owner("www-data") group("www-data") perm(0600)); };
+    destination d_uwsgi { file("/usr/share/docassemble/log/uwsgi.log" owner("www-data") group("www-data") perm(0600)); };
+    destination d_supervisor { file("/usr/share/docassemble/log/supervisor.log" owner("www-data") group("www-data") perm(0600)); };
+    destination d_auth { file("/var/log/auth.log"); };
+    destination d_cron { file("/var/log/cron.log"); };
+    destination d_daemon { file("/var/log/daemon.log"); };
+    destination d_kern { file("/var/log/kern.log"); };
+    destination d_lpr { file("/var/log/lpr.log"); };
+    destination d_mail { file("/var/log/mail.log"); };
+    destination d_syslog { file("/var/log/syslog"); };
+    destination d_user { file("/var/log/user.log"); };
+    destination d_uucp { file("/var/log/uucp.log"); };
+
+    # This files are the log come from the mail subsystem.
+    #
+    destination d_mailinfo { file("/var/log/mail.info"); };
+    destination d_mailwarn { file("/var/log/mail.warn"); };
+    destination d_mailerr { file("/var/log/mail.err"); };
+
+    # Logging for INN news system
+    #
+    destination d_newscrit { file("/var/log/news/news.crit"); };
+    destination d_newserr { file("/var/log/news/news.err"); };
+    destination d_newsnotice { file("/var/log/news/news.notice"); };
+
+    # Some 'catch-all' logfiles.
+    #
+    destination d_debug { file("/var/log/debug"); };
+    destination d_error { file("/var/log/error"); };
+    destination d_messages { file("/var/log/messages"); };
+
+    # The root's console.
+    #
+    destination d_console { usertty("root"); };
+
+    # Virtual console.
+    #
+    destination d_console_all { file(`tty10`); };
+
+    # The named pipe /dev/xconsole is for the nsole' utility.  To use it,
+    # you must invoke nsole' with the -file' option:
+    #
+    #    $ xconsole -file /dev/xconsole [...]
+    #
+    # destination d_xconsole { pipe("/dev/xconsole"); };
+
+    # Debian only
+    destination d_ppp { file("/var/log/ppp.log"); };
+
+    ########################
+    # Filters
+    ########################
+    # Here's come the filter options. With this rules, we can set which 
+    # message go where.
+
+    filter f_nginx_access { level(debug) and program("nginx"); };
+    filter f_nginx_error { level(error) and program("nginx"); };
+    filter f_docassemble { program("docassemble"); };
+    filter f_websockets { program("websockets"); };
+    filter f_daworker { program("celery"); };
+    filter f_daworkersingle { program("celerysingle"); };
+    filter f_uwsgi { program("uwsgi"); };
+    filter f_supervisor { program("supervisor"); };
+    filter f_dbg { level(debug); };
+    filter f_info { level(info); };
+    filter f_notice { level(notice); };
+    filter f_warn { level(warn); };
+    filter f_err { level(err); };
+    filter f_crit { level(crit .. emerg); };
+
+    filter f_debug { level(debug) and not facility(auth, authpriv, news, mail); };
+    filter f_error { level(err .. emerg) ; };
+    filter f_messages { level(info,notice,warn) and 
+                        not facility(auth,authpriv,cron,daemon,mail,news); };
+
+    filter f_auth { facility(auth, authpriv) and not filter(f_debug); };
+    filter f_cron { facility(cron) and not filter(f_debug); };
+    filter f_daemon { facility(daemon) and not filter(f_debug); };
+    filter f_kern { facility(kern) and not filter(f_debug); };
+    filter f_lpr { facility(lpr) and not filter(f_debug); };
+    filter f_local { facility(local0, local1, local3, local4, local5,
+                            local6, local7) and not filter(f_debug); };
+    filter f_mail { facility(mail) and not filter(f_debug); };
+    filter f_news { facility(news) and not filter(f_debug); };
+    filter f_syslog3 { not facility(auth, authpriv, mail) and not filter(f_debug); };
+    filter f_user { facility(user) and not filter(f_debug); };
+    filter f_uucp { facility(uucp) and not filter(f_debug); };
+
+    filter f_cnews { level(notice, err, crit) and facility(news); };
+    filter f_cother { level(debug, info, notice, warn) or facility(daemon, mail); };
+
+    filter f_ppp { facility(local2) and not filter(f_debug); };
+    filter f_console { level(warn .. emerg); };
+
+    ########################
+    # Log paths
+    ########################
+    log { source(s_network); filter(f_nginx_access); destination(d_nginx_access); };
+    log { source(s_network); filter(f_nginx_error); destination(d_nginx_error); };
+    log { source(s_network); filter(f_docassemble); destination(d_docassemble); };
+    log { source(s_network); filter(f_websockets); destination(d_websockets); };
+    log { source(s_network); filter(f_daworker); destination(d_daworker); };
+    log { source(s_network); filter(f_daworkersingle); destination(d_daworkersingle); };
+    log { source(s_network); filter(f_uwsgi); destination(d_uwsgi); };
+    log { source(s_network); filter(f_supervisor); destination(d_supervisor); };
+    log { source(s_network); filter(f_auth); destination(d_auth); };
+    log { source(s_network); filter(f_cron); destination(d_cron); };
+    log { source(s_network); filter(f_daemon); destination(d_daemon); };
+    log { source(s_network); filter(f_kern); destination(d_kern); };
+    log { source(s_network); filter(f_lpr); destination(d_lpr); };
+    log { source(s_network); filter(f_syslog3); destination(d_syslog); };
+    log { source(s_network); filter(f_user); destination(d_user); };
+    log { source(s_network); filter(f_uucp); destination(d_uucp); };
+
+    log { source(s_network); filter(f_mail); destination(d_mail); };
+    #log { source(s_network); filter(f_mail); filter(f_info); destination(d_mailinfo); };
+    #log { source(s_network); filter(f_mail); filter(f_warn); destination(d_mailwarn); };
+    #log { source(s_network); filter(f_mail); filter(f_err); destination(d_mailerr); };
+
+    log { source(s_network); filter(f_news); filter(f_crit); destination(d_newscrit); };
+    log { source(s_network); filter(f_news); filter(f_err); destination(d_newserr); };
+    log { source(s_network); filter(f_news); filter(f_notice); destination(d_newsnotice); };
+    #log { source(s_network); filter(f_cnews); destination(d_console_all); };
+    #log { source(s_network); filter(f_cother); destination(d_console_all); };
+
+    #log { source(s_network); filter(f_ppp); destination(d_ppp); };
+
+    log { source(s_network); filter(f_debug); destination(d_debug); };
+    log { source(s_network); filter(f_error); destination(d_error); };
+    log { source(s_network); filter(f_messages); destination(d_messages); };
+
+    log { source(s_network); filter(f_console); destination(d_console_all); };
+    log { source(s_network); filter(f_crit); destination(d_console); };
+
+    # All messages send to a remote site
+    #
+    #log { source(s_network); destination(d_network); };
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-docassemble-syslogng-confd
+data:
+  docassemble.conf: |
+    source s_docassemble {
+        file("/usr/share/docassemble/log/docassemble.log" flags(no-parse) follow-freq(2) program-override("docassemble") default-priority(debug));
+        file("/usr/share/docassemble/log/websockets.log" flags(no-parse) follow-freq(2) program-override("websockets") default-priority(debug));
+        file("/usr/share/docassemble/log/single_worker.log" flags(no-parse) follow-freq(2) program-override("celerysingle") default-priority(debug));
+        file("/usr/share/docassemble/log/worker.log" flags(no-parse) follow-freq(2) program-override("celery") default-priority(debug));
+        file("/usr/share/docassemble/log/uwsgi.log" flags(no-parse) follow-freq(2) program-override("uwsgi") default-priority(debug));
+        file("/var/log/nginx/access.log" flags(no-parse) follow-freq(2) program-override("nginx") default-priority(debug));
+        file("/var/log/nginx/error.log" flags(no-parse) follow-freq(2) program-override("nginx") default-priority(error));
+        file("/var/log/supervisor/supervisord.log" flags(no-parse) follow-freq(2) program-override("supervisor") default-priority(info));
+    };
+
+    destination d_network {
+        syslog("`LOGSERVER`" transport("tcp") port(514));
+    };
+
+    log {
+        source(s_docassemble); destination(d_network);
+    };
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-docassemble-backend-site-config
+data:
+  docassemblelog: |
+    server {
+        listen 8082;
+        server_tokens off;
+        server_name {{ .Release.Name }}-docassemble-backend-service;
+        client_max_body_size 16777216;
+
+        location / {
+            root /var/www/html/log;
+            index /listlog;
+        }
+
+        location /listlog { try_files $uri @docassemblelog; }
+        location @docassemblelog {
+            include uwsgi_params;
+            uwsgi_pass unix:///var/run/uwsgi/docassemblelog.sock;
+        }
+    }  
+---
+{{- if not .Values.exposeUwsgi }}
+  {{- if and .Values.useHttps .Values.sslCertificate .Values.sslKey }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-docassemble-certs
+  labels:
+    app: {{ .Release.Name }}-docassemble
+type: Opaque
+data:
+  nginx.crt: |
+{{- .Values.sslCertificate | b64enc | indent 4 }}
+  nginx.key: |
+{{- .Values.sslKey | b64enc | indent 4 }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-docassemble-site-config
+data:
+  {{- if .Values.useHttps }}
+  docassemblessl: |
+    server {
+        listen 443 ssl;
+        server_tokens off;
+        server_name {{ .Values.daHostname | quote }};
+        client_max_body_size 16777216;
+        ssl_certificate /etc/ssl/docassemble/nginx.crt;
+        ssl_certificate_key /etc/ssl/docassemble/nginx.key;
+        ssl_protocols TLSv1.2;
+        gzip on;
+        gzip_types text/plain application/xml text/css text/javascript application/javascript image/vnd.microsoft.icon;
+        location / { try_files $uri @docassemble; }
+        location @docassemble {
+            include uwsgi_params;
+            uwsgi_pass unix:///var/run/uwsgi/docassemble.sock;
+        }
+
+        location /ws {
+            include proxy_params;
+            proxy_pass http://127.0.0.1:5000;
+        }
+
+        location /ws/socket.io {
+            include proxy_params;
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+            proxy_pass http://127.0.0.1:5000/socket.io;
+        }
+    }
+  docassembleredirect: |
+    server {
+        listen 80;
+        server_name {{ .Values.daHostname | quote }};
+        return 301 https://$host$request_uri;
+    }
+  {{- else }}
+  docassemblehttp: |
+    server {
+        listen 80;
+        server_tokens off;
+        server_name {{ .Values.daHostname | quote }};
+        client_max_body_size 16777216;
+        gzip on;
+        gzip_types text/plain application/xml text/css text/javascript application/javascript image/vnd.microsoft.icon;
+    {{- if .Values.usingSslTermination }}
+        set_real_ip_from  10.0.0.0/8;
+        set_real_ip_from  172.16.0.0/12;
+        set_real_ip_from  192.168.0.0/16;
+        real_ip_header    X-Forwarded-For;
+        real_ip_recursive on;        
+    {{- end }}
+        location / { try_files $uri @docassemble; }
+        location @docassemble {
+            include uwsgi_params;
+            uwsgi_pass unix:///var/run/uwsgi/docassemble.sock;
+        }
+
+        location /ws {
+            include proxy_params;
+            proxy_pass http://127.0.0.1:5000;
+        }
+
+        location /ws/socket.io {
+            include proxy_params;
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+            proxy_pass http://127.0.0.1:5000/socket.io;
+        }
+    }
+  {{- end }}
+  {{- if and .Values.usingSslTermination (not .Values.useAlb) .Values.redirectHttp }}
+  docassembleredirect: |
+    server {
+        listen 8081;
+        server_name {{ .Values.daHostname | quote }};
+        return 301 https://$host$request_uri;
+    }
+  {{- end }}
+---
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-docassemble-configuration
+data:
+  docassemble.ini: |
+    [uwsgi]
+    master = true
+    enable-threads = true
+    processes = 1
+    threads = 6
+    vhost = true
+    socket = /var/run/uwsgi/docassemble.sock
+    manage-script-name = true
+    mount = /=docassemble.webapp.run:application
+    venv = /usr/share/docassemble/local{{ .Values.pythonVersion }}
+    pidfile = /var/run/uwsgi/uwsgi.pid
+    buffer-size = 32768
+    py-executable = /usr/share/docassemble/local{{ .Values.pythonVersion }}/bin/python
+  docassemble-expose-uwsgi.ini: |
+    [uwsgi]
+    master = true
+    enable-threads = true
+    processes = 1
+    threads = 6
+    vhost = true
+    http-socket = :80
+    manage-script-name = true
+    mount = /=docassemble.webapp.run:application
+    venv = /usr/share/docassemble/local{{ .Values.pythonVersion }}
+    pidfile = /var/run/uwsgi/uwsgi.pid
+    buffer-size = 32768
+    py-executable = /usr/share/docassemble/local{{ .Values.pythonVersion }}/bin/python
+  docassemblelog.ini: |
+    [uwsgi]
+    master = true
+    enable-threads = true
+    processes = 1
+    threads = 6
+    vhost = true
+    socket = /var/run/uwsgi/docassemblelog.sock
+    venv = /usr/share/docassemble/local{{ .Values.pythonVersion }}
+    module = docassemble.webapp.listlog
+    pidfile = /var/run/uwsgi/uwsgilog.pid
+    callable = app
+  config.yml: |
+    supervisor:
+      username: {{ .Values.supervisorUsername | quote }}
+      password: {{ .Values.supervisorPassword | quote }}
+    enable playground: false
+    allow log viewing: false
+    update on start: false
+    allow updates: false
+    allow configuration editing: false
+    root owned: false
+    db:
+{{- if .Values.inClusterPostgres }}
+      host: "{{ .Release.Name }}-postgresql"
+{{- else if .Values.db.host }}
+      host: {{ .Values.db.host | quote }}
+{{- end }}
+{{- if .Values.inClusterPostgres }}
+      name: {{ .Values.postgresql.auth.database | quote }}
+      user: {{ .Values.postgresql.auth.username | quote }}
+      password: {{ .Values.postgresql.auth.password | quote }}
+      port: {{ .Values.postgresql.primary.service.ports.postgresql | quote }}
+{{- else }}
+      name: {{ .Values.db.name | quote }}
+      user: {{ .Values.db.user | quote }}
+      password: {{ .Values.db.password | quote }}
+  {{- if .Values.db.port }}
+      port: {{ .Values.db.port | quote }}
+  {{- end }}
+{{- end }}
+{{- if .Values.db.prefix }}
+      prefix: {{ .Values.db.prefix | quote }}
+{{- end }}
+{{- if .Values.db.tablePrefix }}
+      table prefix: {{ .Values.db.tablePrefix | quote }}
+{{- end }}
+      backup: {{ .Values.db.backup }}
+    secretkey: {{ .Values.secretKey | quote }}
+{{- if .Values.locale }}
+    os locale: {{ .Values.locale | quote }}
+{{- end }}
+    timezone: {{ .Values.timeZone }}
+{{- if .Values.inClusterRedis }}
+    redis: {{ include "docassemble.redisUrl" . | quote }}
+{{- else if .Values.redisURL }}
+    redis: {{ .Values.redisURL | quote }}
+{{- end }}
+{{- if .Values.inClusterRabbitMQ }}
+    rabbitmq: {{ printf "pyamqp://user:%s@%s-rabbitmq//" .Values.rabbitmq.auth.password .Release.Name | quote }}
+{{- else if .Values.amqpURL }}
+    rabbitmq: {{ .Values.amqpURL | quote }}
+{{- end }}
+{{- if .Values.inClusterMinio }}
+    s3:
+      enable: true
+      access key id: {{ .Values.minio.auth.rootUser | quote }}
+      secret access key: {{ .Values.minio.auth.rootPassword | quote }}
+      bucket: "docassemble-bucket"
+      endpoint url: "http://{{ .Release.Name }}-minio:9000"
+{{- else if .Values.s3.enable }}
+    s3:
+      enable: true
+      access key id: {{ .Values.minio.auth.rootUser | quote }}
+      secret access key: {{ .Values.minio.auth.rootPassword | quote }}
+      bucket: {{ .Values.s3.bucket | quote }}
+  {{- if .Values.s3.region }}
+      region: {{ .Values.s3.region | quote }}
+  {{- end }}
+  {{- if .Values.s3.endpointURL }}
+      endpoint url: {{ .Values.s3.endpointURL | quote }}
+  {{- end }}
+{{- else if .Values.azure.enable }}
+    azure:
+      enable: true
+      account name: {{ .Values.azure.accountName | quote }}
+      account key: {{ .Values.azure.accountKey | quote }}
+      container: {{ .Values.azure.container | quote }}
+{{- end }}
+    collect statistics: true
+    kubernetes: true
+    log server: "{{ .Release.Name }}-docassemble-backend-service"
+{{- if .Values.inClusterMinio }}
+    use minio: true
+{{- else }}
+    use minio: false
+{{- end }}
+    behind https load balancer: {{ .Values.usingSslTermination }}
+    external hostname: {{ .Values.daHostname | quote }}
+{{- if .Values.exposeWebsockets }}
+    expose websockets: true
+{{- else }}
+    expose websockets: false
+{{- end }}
+    websockets ip: "127.0.0.1"
+    websockets port: "5000"
+    root: /
+    allow non-idempotent questions: false
+    restrict input variables: true
+{{- if .Values.exposeUwsgi }}
+    web server: none
+{{- else }}
+    web server: nginx
+{{- end }}
+    new markdown to docx: true
+    new template markdown behavior: true
+{{- if .Values.useSqlPing }}
+    sql ping: true
+{{- else }}
+    sql ping: false
+{{- end }}
+    default icons: font awesome
+    enable unoconv: true
+{{- if .Values.daConfiguration }}
+{{ toYaml .Values.daConfiguration | indent 4 }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-docassemble-cron
+data:
+  crontab: |
+    CONTAINERROLE=:web:celery:
+    DA_ROOT=/usr/share/docassemble
+    SHELL=/bin/sh
+    PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+    17 *	* * *	root    cd / && run-parts --report /etc/cron.hourly
+    25 6	* * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+    47 6	* * 7	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+    52 6	1 * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+  apache2: |
+    #! /bin/bash
+
+    exit 0
+  exim4-base: |
+    #! /bin/bash
+
+    exit 0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-docassemble-backend-cron
+data:
+  crontab: |
+    CONTAINERROLE=:{{ if and (not .Values.inClusterRabbitMQ) (not .Values.amqpURL) }}rabbitmq:{{ end }}{{ if and (not .Values.inClusterRabbitMQ) (not .Values.redisURL) }}redis:{{ end }}{{ if and (not .Values.inClusterPostgres) (not .Values.db.host) }}sql:{{ end }}log:cron{{- if not .Values.readOnlyFileSystem }}:mail{{ end }}:
+    DA_ROOT=/usr/share/docassemble
+    SHELL=/bin/sh
+    PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+    17 *	* * *	root    cd / && run-parts --report /etc/cron.hourly
+    25 6	* * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+    47 6	* * 7	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+    52 6	1 * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+  apache2: |
+    #! /bin/bash
+
+    exit 0
+  exim4-base: |
+    #! /bin/bash
+
+    exit 0

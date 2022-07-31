@@ -1,6 +1,8 @@
 {{- define "docassemble.commonEnvironment" -}}
         - name: ENVIRONMENT_TAKES_PRECEDENCE
           value: "true"
+        - name: DASUPERVISORUSERNAME
+          value: {{ .Values.supervisor.username | quote }}
         - name: COLLECTSTATISTICS
           value: "true"
         - name: KUBERNETES
@@ -9,13 +11,13 @@
           value: {{ .Values.daHostname }}
         - name: TIMEZONE
           value: {{ .Values.timeZone }}
-{{- if .Values.locale }}
+  {{- if .Values.locale }}
         - name: LOCALE
           value: {{ .Values.locale }}
-{{- end }}
+  {{- end }}
         - name: DAPYTHONVERSION
           value: "3"
-{{- if .Values.inClusterMinio }}
+  {{- if .Values.inClusterMinio }}
         - name: S3ENABLE
           value: "true"
         - name: S3BUCKET
@@ -32,69 +34,71 @@
               key: secretkey
         - name: S3ENDPOINTURL
           value: "http://{{ .Release.Name }}-minio:9000"
-{{- else if .Values.s3.enable }}
+  {{- else if .Values.s3.enable }}
         - name: S3ENABLE
           value: "true"
         - name: S3BUCKET
           value: "{{ .Values.s3.bucket }}"
-  {{- if .Values.s3.region }}
+    {{- if .Values.s3.region }}
         - name: S3REGION
           value: "{{ .Values.s3.region }}"
-  {{- end }}
-  {{- if .Values.s3.endpointURL }}
+    {{- end }}
+    {{- if .Values.s3.endpointURL }}
         - name: S3ENDPOINTURL
           value: "{{ .Values.s3.endpointURL }}"
-  {{- end }}
-{{- else if .Values.azure.enable }}
+    {{- end }}
+  {{- else if .Values.azure.enable }}
         - name: AZUREENABLE
           value: "true"
         - name: AZUREACCOUNTNAME
           value: "{{ .Values.azure.accountName }}"
         - name: AZURECONTAINER
           value: "{{ .Values.azure.container }}"
-{{- end }}
-{{- if .Values.inClusterPostgres }}
+  {{- end }}
+  {{- if .Values.inClusterPostgres }}
         - name: DBHOST
           value: "{{ .Release.Name }}-postgresql"
-{{- else if .Values.db.host }}
+  {{- else if .Values.db.host }}
         - name: DBHOST
           value: "{{ .Values.db.host }}"
-{{- end }}
-{{- if .Values.inClusterPostgres }}
+  {{- end }}
+  {{- if .Values.inClusterPostgres }}
         - name: DBNAME
           value: "{{ .Values.postgresql.auth.database }}"
         - name: DBUSER
           value: "{{ .Values.postgresql.auth.username }}"
         - name: DBPORT
           value: "{{ .Values.postgresql.primary.service.ports.postgresql }}"
-{{- else }}
+  {{- else }}
         - name: DBNAME
           value: "{{ .Values.db.name }}"
         - name: DBUSER
           value: "{{ .Values.db.user }}"
-  {{- if .Values.db.port }}
+    {{- if .Values.db.port }}
         - name: DBPORT
           value: "{{ .Values.db.port }}"
+    {{- end }}
   {{- end }}
-{{- end }}
-{{- if .Values.db.prefix }}
+  {{- if .Values.db.prefix }}
         - name: DBPREFIX
           value: "{{ .Values.db.prefix }}"
-{{- end }}
-{{- if .Values.db.tablePrefix }}
+  {{- end }}
+  {{- if .Values.db.tablePrefix }}
         - name: DBTABLEPREFIX
           value: "{{ .Values.db.tablePrefix }}"
-{{- end }}
+  {{- end }}
         - name: DBBACKUP
           value: "{{ .Values.db.backup }}"
         - name: USECLOUDURLS
           value: "false"
         - name: DAEXPOSEWEBSOCKETS
-{{- if .Values.exposeWebsockets }}
+  {{- if .Values.exposeWebsockets }}
           value: "true"
-{{- else }}
+  {{- else }}
           value: "false"
-{{- end }}
+  {{- end }}
+        - name: USEHTTPS
+          value: "{{ .Values.useHttps }}"
         - name: BEHINDHTTPSLOADBALANCER
           value: "{{ .Values.usingSslTermination }}"
         - name: LOGSERVER
@@ -103,10 +107,27 @@
           value: "{{ .Release.Name }}"
         - name: CHART_VERSION
           value: "{{ .Chart.Version }}"
+  {{- if .Values.readOnlyFileSystem }}
+        - name: DAALLOWUPDATES
+          value: "false"
+        - name: DAALLOWCONFIGURATIONEDITING
+          value: "false"
+        - name: DAENABLEPLAYGROUND
+          value: "false"
+        - name: DAREADONLYFILESYSTEM
+          value: "true"
+  {{- else }}
         - name: DAALLOWUPDATES
           value: "{{ .Values.daAllowUpdates }}"
+  {{- end }}
+  {{- if .Values.exposeUwsgi }}
+        - name: DAWEBSERVER
+          value: "none"
+  {{- end }}
+  {{- if .Values.daStableVersion }}
         - name: DASTABLEVERSION
           value: "{{ .Values.daStableVersion }}"
+  {{- end }}
         - name: USEMINIO
   {{- if .Values.inClusterMinio }}
           value: "true"

@@ -15,7 +15,7 @@ spec:
         app: {{ .Release.Name }}-docassemble
         appType: docassemble
     spec:
-      {{- if .Values.multiNodeDeployment }}
+{{- if .Values.multiNodeDeployment }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -26,7 +26,7 @@ spec:
                 values:
                 - docassemble
             topologyKey: kubernetes.io/hostname
-      {{- end }}
+{{- end }}
       initContainers:
       - name: init-backend
         image: {{ template "docassemble.busyboxImage" . }}
@@ -35,6 +35,52 @@ spec:
       containers:
       - name: docassemble
         image: {{ template "docassemble.daImage" . }}
+{{- if .Values.readOnlyFileSystem }}
+        securityContext:
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: varrun
+          mountPath: /var/run
+        - name: varlogsupervisor
+          mountPath: /var/log/supervisor
+        - name: varlognginx
+          mountPath: /var/log/nginx
+        - name: varmail
+          mountPath: /var/mail
+        - name: varlibsyslogng
+          mountPath: /var/lib/syslog-ng
+        - name: varlibnginx
+          mountPath: /var/lib/nginx
+        - name: varwwwcache
+          mountPath: /var/www/.cache
+        - name: varwwwconfig
+          mountPath: /var/www/.config
+        - name: varwwwtexlive
+          mountPath: /var/www/.texlive{{ .Values.texliveVersion }}
+        - name: log-vol
+          mountPath: /usr/share/docassemble/log
+        - name: configuration-vol
+          mountPath: /usr/share/docassemble/config
+          readOnly: true
+        - name: cron-vol
+          mountPath: /usr/share/docassemble/cron
+          readOnly: true
+        - name: syslogng-vol
+          mountPath: /usr/share/docassemble/syslogng
+          readOnly: true
+  {{- if not .Values.exposeUwsgi }}
+        - name: site-config-vol
+          mountPath: /etc/nginx/sites-enabled
+          readOnly: true
+    {{- if and .Values.useHttps .Values.sslCertificate .Values.sslKey }}
+        - name: certs-vol
+          mountPath: /etc/ssl/docassemble
+          readOnly: true
+    {{- end }}
+  {{- end }}
+{{- end }}
         imagePullPolicy: {{ .Values.daImage.pullPolicy | quote }}
         envFrom:
           - secretRef:
@@ -49,7 +95,7 @@ spec:
         - containerPort: 5000
 {{- end }}
         - containerPort: 9001
-{{- if and .Values.usingSslTermination (not .Values.useAlb) .Values.redirectHttp }}
+{{- if and (or .Values.useHttps .Values.usingSslTermination) (not .Values.useAlb) .Values.redirectHttp }}
         - containerPort: 8081
 {{- end }}
         readinessProbe:
@@ -72,4 +118,48 @@ spec:
           limits:
             memory: "{{ .Values.resources.deployment.limits.memory }}"
             cpu: "{{ .Values.resources.deployment.limits.cpu }}"
+{{- if .Values.readOnlyFileSystem }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: varrun
+          emptyDir: {}
+        - name: varlogsupervisor
+          emptyDir: {}
+        - name: varlognginx
+          emptyDir: {}
+        - name: varmail
+          emptyDir: {}
+        - name: varlibsyslogng
+          emptyDir: {}
+        - name: varlibnginx
+          emptyDir: {}
+        - name: varwwwcache
+          emptyDir: {}
+        - name: varwwwconfig
+          emptyDir: {}
+        - name: varwwwtexlive
+          emptyDir: {}
+        - name: log-vol
+          emptyDir: {}
+        - name: configuration-vol
+          configMap:
+            name: {{ .Release.Name }}-docassemble-configuration
+        - name: cron-vol
+          configMap:
+            name: {{ .Release.Name }}-docassemble-cron
+        - name: syslogng-vol
+          configMap:
+            name: {{ .Release.Name }}-docassemble-syslogng
+  {{- if not .Values.exposeUwsgi }}
+        - name: site-config-vol
+          configMap:
+            name: {{ .Release.Name }}-docassemble-site-config
+    {{- if and .Values.useHttps .Values.sslCertificate .Values.sslKey }}
+        - name: certs-vol
+          configMap:
+            name: {{ .Release.Name }}-docassemble-certs
+    {{- end }}
+  {{- end }}
+{{- end }}
       terminationGracePeriodSeconds: 120

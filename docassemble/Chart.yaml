@@ -1,8 +1,8 @@
 apiVersion: v2
-appVersion: 2.0.0
+appVersion: 2.0.1
 description: A platform for developing guided interviews and expert systems
 name: docassemble
-version: 2.0.0
+version: 2.0.1
 dependencies:
   - name: minio
     version: 11.6.7

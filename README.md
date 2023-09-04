@@ -97,7 +97,8 @@ You can set the following values:
   ip`, `websockets port`, `root`, `allow non-idempotent questions`,
   `restrict input variables`, `web server`, `new markdown to docx`,
   `new template markdown behavior`, `sql ping`, `default icons`, and
-  `enable unoconv`.
+  `enable unoconv`. If `inClusterGotenberg` is `true`, the `gotenberg
+  url` is set automatically and `enable unoconv` is set to `false`.
 * `inClusterNGINX`: default is `true`. By default, the chart runs
   NGINX inside the cluster in order to provide sticky session support
   for websockets communication. The Live Help features use
@@ -145,6 +146,10 @@ You can set the following values:
   a [PostgreSQL] server inside the cluster. If you are using [RDS] or
   another external SQL server, set this to `false` and set `db.host`
   to the hostname of the SQL server.
+* `inClusterGotenberg`: default is `true`. By default, the chart runs
+  a [Gotenberg] server inside the cluster for DOCX to PDF conversion
+  instead of using [unoconv]. Set this to `false` if you do not want
+  the [Gotenberg] server to be started.
 * `db.prefix`: if you are not using [PostgreSQL], set this to the
   [SQLAlchemy] URL prefix for the type of SQL database you are using.
   For [MySQL], use `mysql://`. Also set `inClusterPostgres: false`.
@@ -318,10 +323,11 @@ disabled using configuration values):
 
 * [MinIO] for object storage (S3-compatible).
 * [Ingress NGINX Controller] to provide sticky sessions for websockets
-  traffic.
+  traffic. It also acts as an Ingress for regular web traffic.
 * [PostgreSQL] for the backend SQL storage system.
 * [Redis] for the backend in-memory storage system.
 * [RabbitMQ] for supporting the [Celery]-based background task system.
+* [Gotenberg] for DOCX to PDF conversion.
 * An [API] for monitoring the cluster.
 
 The chart also installs a single backend **docassemble** server, which
@@ -555,3 +561,5 @@ helm install -f values.yaml mydocassemble jhpyle/docassemble
 [`values.yaml`]: https://github.com/jhpyle/charts/blob/master/docassemble/values.yaml
 [dependencies]: https://github.com/jhpyle/charts/tree/master/docassemble/charts
 [supervisord]: http://supervisord.org/
+[Gotenberg]: https://gotenberg.dev/
+[unoconv]: https://github.com/unoconv/unoconv

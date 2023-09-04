@@ -652,7 +652,12 @@ data:
     sql ping: false
 {{- end }}
     default icons: font awesome
+{{- if .Values.inClusterGotenberg }}
+    enable unoconv: false
+    gotenberg url: "{{ .Release.Name }}-gotenberg-service"
+{{- else }}
     enable unoconv: true
+{{- end }}
 {{- if .Values.daConfiguration }}
 {{ toYaml .Values.daConfiguration | indent 4 }}
 {{- end }}

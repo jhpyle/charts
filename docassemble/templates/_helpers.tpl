@@ -140,6 +140,12 @@
   {{- else }}
           value: "false"
   {{- end }}
+  {{- if .Values.inClusterGotenberg }}
+        - name: ENABLEUNOCONV
+          value: "false"
+        - name: GOTENBERGURL
+          value: "http://{{ .Release.Name }}-gotenberg-service:3000"
+  {{- end }}
 {{- end -}}
 {{- define "docassemble.formatImage" -}}
 {{- $registryName := .imageRoot.registry -}}
@@ -174,7 +180,7 @@
 {{- define "docassemble.daImage" -}}
 {{ include "docassemble.formatImage" (dict "imageRoot" .Values.daImage "global" .Values.global) }}
 {{- end -}}
-{{- define "docassemble.aws-alb-ingress-controller" -}}
+{{- define "docassemble.albImage" -}}
 {{ include "docassemble.formatImage" (dict "imageRoot" .Values.albImage "global" .Values.global) }}
 {{- end -}}
 {{- define "docassemble.busyboxImage" -}}
@@ -182,6 +188,9 @@
 {{- end -}}
 {{- define "docassemble.daMonitorImage" -}}
 {{ include "docassemble.formatImage" (dict "imageRoot" .Values.daMonitorImage "global" .Values.global) }}
+{{- end -}}
+{{- define "docassemble.gotenbergImage" -}}
+{{ include "docassemble.formatImage" (dict "imageRoot" .Values.gotenberg.image "global" .Values.global) }}
 {{- end -}}
 {{- define "docassemble.redisUrl" -}}
 {{- if .Values.redis.auth.enabled -}}

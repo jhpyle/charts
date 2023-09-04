@@ -1,0 +1,45 @@
+{{- if .Values.inClusterGotenberg }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gotenberg
+  labels:
+    app: {{ .Release.Name }}-gotenberg
+spec:
+  replicas: {{ .Values.gotenberg.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-gotenberg
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-gotenberg
+        appType: gotenberg
+    spec:
+      containers:
+      - name: gotenberg
+        image: {{ template "docassemble.gotenbergImage" . }}
+        imagePullPolicy: {{ .Values.gotenberg.image.pullPolicy | quote }}
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 60
+          failureThreshold: 25
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 60
+        resources:
+          requests:
+            memory: "{{ .Values.gotenberg.resources.requests.memory }}"
+            cpu: "{{ .Values.gotenberg.resources.requests.cpu }}"
+          limits:
+            memory: "{{ .Values.gotenberg.resources.limits.memory }}"
+            cpu: "{{ .Values.gotenberg.resources.limits.cpu }}"
+{{- end }}

@@ -78,7 +78,7 @@ spec:
       - name: init-rabbitmq
         image: {{ template "docassemble.rabbitmq.image" . }}
         imagePullPolicy: {{ .Values.redis.image.pullPolicy | quote }}
-        command: ['sh', '-c', 'until rabbitmqctl --erlang-cookie {{ .Values.rabbitmq.auth.erlangCookie | quote }} --longnames --node "rabbit@{{ .Release.Name }}-rabbitmq-0.{{ .Release.Name }}-rabbitmq-headless.default.svc.{{ .Values.clusterDomain }}" status; do echo waiting for rabbitmq; sleep 2; done;']
+        command: ['sh', '-c', 'until rabbitmqctl --erlang-cookie {{ .Values.rabbitmq.auth.erlangCookie | quote }} --longnames --node "rabbit@{{ .Release.Name }}-rabbitmq-0.{{ .Release.Name }}-rabbitmq-headless.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}" status; do echo waiting for rabbitmq; sleep 2; done;']
   {{- end }}
 {{- end }}
       containers:

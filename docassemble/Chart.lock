@@ -1,18 +1,18 @@
 dependencies:
 - name: minio
   repository: https://charts.bitnami.com/bitnami
-  version: 12.8.1
+  version: 14.7.3
 - name: ingress-nginx
   repository: https://kubernetes.github.io/ingress-nginx
-  version: 4.7.1
+  version: 4.11.2
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
-  version: 12.1.3
+  version: 14.6.9
 - name: redis
   repository: https://charts.bitnami.com/bitnami
-  version: 18.0.1
+  version: 20.0.3
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
-  version: 12.10.0
-digest: sha256:28acdac235b2055a2932ba283298f3e1725d7ff723d4c54dd89d0ad46db696e3
-generated: "2023-09-02T17:03:51.674475773-04:00"
+  version: 15.5.26
+digest: sha256:599d33aee8fc4bf138114e3b21a58dd588c241d3264a8d847bfba749b289a41e
+generated: "2024-08-29T08:34:15.662628309-04:00"

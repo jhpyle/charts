@@ -256,13 +256,13 @@ You can set the following values:
   is a cost in overhead, but it will prevent errors.
 * `pythonVersion`: default is `3.10`. The value of this depends on the
   version of the **docassemble** Docker image you are using. For
-  version 1.4.x, use `3.10`. For version 1.2.x or 1.3.x, use `3.8`.
-* `texliveVersion`: default is `2021`. The value of this depends on the
-  version of the **docassemble** Docker image you are using. For
-  version 1.4.x, use `2021`. For version 1.2.x or 1.3.x, use `2020`.
-* `syslogNgVersion`: default is `3.35`. The value of this depends on the
-  version of the **docassemble** Docker image you are using. For
-  version 1.4.x, use `3.35`. For version 1.2.x or 1.3.x, use `3.28`.
+  version 1.4.x or 1.5.x, use `3.10`. For version 1.2.x or 1.3.x, use `3.8`.
+* `texliveVersion`: default is `2023`. The value of this depends on
+  the version of the **docassemble** Docker image you are using and
+  specifically the operating system running on that image. Run
+  `tex --version` to check the TeX Live version.
+* `syslogNgVersion`: default is `4.3.1`. The value of this depends on the
+  version of the **docassemble** Docker image you are using.
 
 The following values can be changed from their defaults in order to
 increase security.

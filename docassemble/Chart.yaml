@@ -3,24 +3,25 @@ appVersion: 2.0.2
 description: A platform for developing guided interviews and expert systems
 name: docassemble
 version: 2.0.2
+icon: https://docassemble.org/img/docassemble-logo-sq-1200.png
 dependencies:
   - name: minio
-    version: 14.7.3
+    version: 17.0.6
     repository: https://charts.bitnami.com/bitnami
     condition: inClusterMinio
   - name: ingress-nginx
-    version: 4.11.2
+    version: 4.12.3
     repository: https://kubernetes.github.io/ingress-nginx
     condition: inClusterNGINX
   - name: rabbitmq
-    version: 14.6.9
+    version: 16.0.6
     repository: https://charts.bitnami.com/bitnami
     condition: inClusterRabbitMQ
   - name: redis
-    version: 20.0.3
+    version: 21.2.0
     repository: https://charts.bitnami.com/bitnami
     condition: inClusterRedis
   - name: postgresql
-    version: 15.5.26
+    version: 16.7.10
     repository: https://charts.bitnami.com/bitnami
     condition: inClusterPostgres

@@ -33,7 +33,7 @@ spec:
       - name: init-minio
         image: {{ template "docassemble.minio.clientImage" . }}
         imagePullPolicy: {{ .Values.minio.image.pullPolicy | quote }}
-        command: ['sh', '-c', 'until { mc config host add minio "$S3_ENDPOINT_URL" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"; } do echo "waiting for minio"; sleep 10; done; sleep 10; mc mb --ignore-existing "$S3_BUCKET"']
+        command: ['sh', '-c', 'until { mc alias set minio "$S3_ENDPOINT_URL" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"; } do echo "waiting for minio"; sleep 10; done; sleep 10; mc mb --ignore-existing "$S3_BUCKET"']
         env:
         - name: S3_ACCESS_KEY
           valueFrom:
@@ -111,8 +111,10 @@ spec:
           mountPath: /var/www/.cache
         - name: varwwwconfig
           mountPath: /var/www/.config
-        - name: varwwwtexlive
-          mountPath: /var/www/.texlive{{ .Values.texliveVersion }}
+        - name: varwwwtexlive1
+          mountPath: /var/www/.texlive2021
+        - name: varwwwtexlive2
+          mountPath: /var/www/.texlive2023
         - name: log-vol
           mountPath: /usr/share/docassemble/log
         - name: configuration-vol
@@ -196,7 +198,9 @@ spec:
         emptyDir: {}
       - name: varwwwconfig
         emptyDir: {}
-      - name: varwwwtexlive
+      - name: varwwwtexlive1
+        emptyDir: {}
+      - name: varwwwtexlive2
         emptyDir: {}
       - name: log-vol
         emptyDir: {}

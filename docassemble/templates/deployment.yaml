@@ -57,8 +57,10 @@ spec:
           mountPath: /var/www/.cache
         - name: varwwwconfig
           mountPath: /var/www/.config
-        - name: varwwwtexlive
-          mountPath: /var/www/.texlive{{ .Values.texliveVersion }}
+        - name: varwwwtexlive1
+          mountPath: /var/www/.texlive2021
+        - name: varwwwtexlive2
+          mountPath: /var/www/.texlive2023
         - name: log-vol
           mountPath: /usr/share/docassemble/log
         - name: configuration-vol
@@ -138,7 +140,9 @@ spec:
           emptyDir: {}
         - name: varwwwconfig
           emptyDir: {}
-        - name: varwwwtexlive
+        - name: varwwwtexlive1
+          emptyDir: {}
+        - name: varwwwtexlive2
           emptyDir: {}
         - name: log-vol
           emptyDir: {}

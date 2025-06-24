@@ -16,8 +16,7 @@ secretKey: JmjajLcAXLvOGkDkbQKAEgIczAlPbfBo
 daAllowUpdates: true
 
 syslogNgVersion: "4.3.1"
-pythonVersion: "3.10"
-texliveVersion: "2025"
+pythonVersion: "3.12"
 supervisor:
   username: user
   password: abc123abc123
@@ -26,12 +25,12 @@ sslKey: ""
 bashImage:
   registry: docker.io
   repository: bash
-  tag: 5.2.32
+  tag: 5.2.37
   pullPolicy: IfNotPresent
 busyboxImage:
   registry: docker.io
   repository: busybox
-  tag: 1.36.1
+  tag: 1.37.0
   pullPolicy: IfNotPresent
 timeZone: America/New_York
 #locale: en_US.UTF-8 UTF-8
@@ -114,7 +113,7 @@ rabbitmq:
     image:
       registry: docker.io
       repository: bitnami/os-shell
-      tag: 12-debian-12-r28
+      tag: 12-debian-12-r47
       pullPolicy: IfNotPresent
     resources:
       limits:
@@ -126,7 +125,7 @@ rabbitmq:
   image:
     registry: docker.io
     repository: bitnami/rabbitmq
-    tag: 3.13.7-debian-12-r2
+    tag: 4.1.1-debian-12-r0
     debug: true
   auth:
     password: abc123
@@ -148,6 +147,12 @@ minio:
     rootUser: "AKIAIOSFOD"
     rootPassword: "wJalrXUtnFEMI/K7MDENG/bPxRfiCY1R23r2wer"
   mode: distributed
+  console:
+    image:
+      registry: docker.io
+      repository: bitnami/minio-object-browser
+      tag: 2.0.1-debian-12-r3
+      pullPolicy: IfNotPresent
   resources:
     requests:
       cpu: 128m
@@ -158,19 +163,19 @@ minio:
   clientImage:
     registry: docker.io
     repository: bitnami/minio-client
-    tag: 2024.8.26-debian-12-r0
+    tag: 2025.5.21-debian-12-r6
     pullPolicy: IfNotPresent
   image:
     registry: docker.io
     repository: bitnami/minio
-    tag: 2024.8.26-debian-12-r0
+    tag: 2025.5.24-debian-12-r7
     pullPolicy: IfNotPresent
   volumePermissions:
     enabled: true
     image:
       registry: docker.io
       repository: bitnami/os-shell
-      tag: 12-debian-12-r28
+      tag: 12-debian-12-r47
       pullPolicy: IfNotPresent
     resources:
       requests:
@@ -186,14 +191,14 @@ ingress-nginx:
     image:
       registry: registry.k8s.io
       image: ingress-nginx/controller
-      tag: "v1.11.2"
+      tag: "v1.12.3"
       pullPolicy: IfNotPresent
     admissionWebhooks:
       patch:
         image:
           registry: registry.k8s.io
           image: ingress-nginx/kube-webhook-certgen
-          tag: "v1.4.3"
+          tag: "v1.5.4"
           pullPolicy: IfNotPresent
     replicaCount: 1
     nodeSelector:
@@ -245,7 +250,7 @@ redis:
     image:
       registry: docker.io
       repository: bitnami/os-shell
-      tag: 12-debian-12-r28
+      tag: 12-debian-12-r47
       pullPolicy: IfNotPresent
       debug: true
     resources:
@@ -258,7 +263,7 @@ redis:
   image:
     registry: docker.io
     repository: bitnami/redis
-    tag: 7.4.0-debian-12-r2
+    tag: 8.0.2-debian-12-r3
     pullPolicy: IfNotPresent
     debug: true
   sysctl:
@@ -266,7 +271,7 @@ redis:
     image:
       registry: docker.io
       repository: bitnami/os-shell
-      tag: 12-debian-12-r28
+      tag: 12-debian-12-r47
       pullPolicy: IfNotPresent
       debug: true
     resources:
@@ -281,14 +286,14 @@ postgresql:
   image:
     registry: docker.io
     repository: bitnami/postgresql
-    tag: 16.4.0-debian-12-r4
+    tag: 17.5.0-debian-12-r10
     pullPolicy: IfNotPresent
   volumePermissions:
     enabled: true
     image:
       registry: docker.io
       repository: bitnami/os-shell
-      tag: 12-debian-12-r28
+      tag: 12-debian-12-r47
       pullPolicy: IfNotPresent
     resources:
       limits:
@@ -316,7 +321,7 @@ gotenberg:
   image:
     registry: docker.io
     repository: gotenberg/gotenberg
-    tag: 8.9.1
+    tag: 8.21
     pullPolicy: IfNotPresent
   replicas: 2
   resources:

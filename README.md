@@ -43,6 +43,10 @@ helm install mydocassemble jhpyle/docassemble \
     --set daHostname=docassemble.example.com
 ```
 
+A system may take significant time to start, as [Docker] images
+download and components wait for each other to become ready. 70
+minutes is not unusual.
+
 You can set the following values:
 
 * `daHostname`: default is `localhost`. Always set this when you run
@@ -254,15 +258,12 @@ You can set the following values:
 * `useSqlPing`: default is `false`. If your connection to the SQL
   database will continually be terminated, set this to `true`. There
   is a cost in overhead, but it will prevent errors.
-* `pythonVersion`: default is `3.10`. The value of this depends on the
+* `pythonVersion`: default is `3.12`. The value of this depends on the
   version of the **docassemble** Docker image you are using. For
-  version 1.4.x or 1.5.x, use `3.10`. For version 1.2.x or 1.3.x, use `3.8`.
-* `texliveVersion`: default is `2023`. The value of this depends on
-  the version of the **docassemble** Docker image you are using and
-  specifically the operating system running on that image. Run
-  `tex --version` to check the TeX Live version.
-* `syslogNgVersion`: default is `4.3.1`. The value of this depends on the
-  version of the **docassemble** Docker image you are using.
+  version 1.4.x, 1.5.x, or 1.6.x use `3.10`. For version 1.2.x or
+  1.3.x, use `3.8`.
+* `syslogNgVersion`: default is `4.3.1`. The value of this depends on
+  the version of the **docassemble** Docker image you are using.
 
 The following values can be changed from their defaults in order to
 increase security.
@@ -275,9 +276,10 @@ increase security.
   because if you ever need to recreate your system from persistent
   data storage, you will need this.
 * `minio.auth.rootUser`: the [MinIO] system uses a username and
-  password. This is the username.
+  password. This is the username. The default is `AKIAIOSFOD`.
 * `minio.auth.rootPassword`: the [MinIO] system uses a username and
-  password. This is the password.
+  password. This is the password. The default is
+  `wJalrXUtnFEMI/K7MDENG/bPxRfiCY1R23r2wer`.
 * `supervisor.username`: the **docassemble** web application pods and
   the backend pod use [supervisord] to launch and restart component
   services. The pods need to be able to communicate with each other
@@ -399,6 +401,13 @@ example is `10.100.213.74`. This is not exposed to an external IP
 address and should not be, because the API does not use
 authentication.
 
+### Using MinIO
+
+The [MinIO] system includes a console (a web server) accessible on
+port 9090 of the `<release-name>-minio-console` service. You can log
+in using the username and password you configured with the
+`minio.auth.rootUser` and `minio.auth.rootPassword` values.
+
 ### Cleaning up
 
 To delete the system, run:
@@ -479,7 +488,7 @@ Amazon account. Then install the `eksctl` and `kubectl` command line
 utilities.
 
 The easiest way to start a cluster is with a command like `eksctl
-create cluster --nodes 3 --node-type t3.medium --version 1.22`. You
+create cluster --nodes 3 --node-type t3.medium --version 1.33`. You
 can then install [Helm] and install the **docassemble** chart with
 `helm install` as described above.
 
@@ -492,17 +501,23 @@ HTTPS) you can create a file `values.yaml` containing something like:
 usingSslTermination: false
 adminEmail: you@yourserver.com
 adminPassword: xxxsecretxxx
+minio:
+  persistence:
+    enabled: false
 ```
 
-Then start [minikube] and install the [Helm] chart:
+Then start [minikube] and install the [Helm] chart. For example:
 
 ```
-minikube start --nodes 3
+minikube start --vm-driver=kvm2 --disk-size 80gb --memory 9G --cpus max --nodes 3
 helm install -f values.yaml mydocassemble jhpyle/docassemble
 ```
 
 To access the web interface, you will probably need to use
 [`kubectl port-forward`].
+
+Disabling persistence in `minio` is necessary to avoid a permissions
+error related to the use of persistent volumes.
 
 ## Known issues
 
